@@ -38,3 +38,10 @@ export {
   useFunctionalGroupBreakdown,
   type VolumeStatItem,
 } from './hooks/useVolumeStats';
+
+export {
+  useDailyStats,
+  type DailyActivity,
+  type DailyWorkout,
+  type DailyExercise,
+} from './hooks/useDailyStats';

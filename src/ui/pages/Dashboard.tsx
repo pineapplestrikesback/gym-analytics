@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useCurrentProfile } from '../context/ProfileContext';
 import { MuscleVolumeGrid } from '../components/MuscleVolumeGrid';
 import { TotalVolumeCard } from '../components/TotalVolumeCard';
+import { WeeklyActivityChart } from '../components/WeeklyActivityChart';
 
 export function Dashboard(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
@@ -37,6 +38,9 @@ export function Dashboard(): React.ReactElement {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-white">Workout Overview</h2>
       </div>
+
+      {/* Weekly Activity Chart */}
+      <WeeklyActivityChart />
 
       {/* This Week Section */}
       <div className="rounded-lg bg-primary-700 p-6">
