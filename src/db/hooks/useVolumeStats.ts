@@ -69,15 +69,18 @@ export function useScientificMuscleVolume(
   const { workouts, isLoading, error } = useWorkouts(profileId, daysBack);
   const { profile } = useProfile(profileId);
 
-  const stats = useMemo(() => {
+  const { stats, totalVolume } = useMemo(() => {
     // Flatten all sets from all workouts
     const allSets = workouts.flatMap((w) => convertSets(w.sets));
+
+    // Calculate total volume as the actual count of sets performed
+    const actualSetCount = allSets.length;
 
     // Calculate volume per scientific muscle
     const volumeMap = calculateMuscleVolume(allSets, EXERCISE_MAPPINGS);
 
     // Build stats array
-    return SCIENTIFIC_MUSCLES.map((muscle) => {
+    const statsArray = SCIENTIFIC_MUSCLES.map((muscle) => {
       const volume = volumeMap[muscle] ?? 0;
       const goal = profile?.goals[muscle] ?? DEFAULT_MUSCLE_GOAL;
       return {
@@ -87,11 +90,9 @@ export function useScientificMuscleVolume(
         percentage: goal > 0 ? (volume / goal) * 100 : 0,
       };
     });
-  }, [workouts, profile]);
 
-  const totalVolume = useMemo(() => {
-    return stats.reduce((sum, stat) => sum + stat.volume, 0);
-  }, [stats]);
+    return { stats: statsArray, totalVolume: actualSetCount };
+  }, [workouts, profile]);
 
   return { stats, totalVolume, isLoading, error };
 }
@@ -116,7 +117,11 @@ export function useFunctionalGroupVolume(
     // Flatten all sets from all workouts
     const allSets = workouts.flatMap((w) => convertSets(w.sets));
 
-    // Calculate volume per scientific muscle
+    // Calculate total volume as the actual count of sets performed
+    // Each set is counted exactly once, regardless of how many muscles it stimulates
+    const actualSetCount = allSets.length;
+
+    // Calculate volume per scientific muscle (for per-muscle stats display)
     const scientificVolume = calculateMuscleVolume(allSets, EXERCISE_MAPPINGS);
 
     // Get muscle group customization or use defaults
@@ -148,9 +153,8 @@ export function useFunctionalGroupVolume(
       };
     });
 
-    const total = statsArray.reduce((sum, stat) => sum + stat.volume, 0);
-
-    return { stats: statsArray, totalVolume: total };
+    // Return actual set count as totalVolume (not sum of fractional muscle volumes)
+    return { stats: statsArray, totalVolume: actualSetCount };
   }, [workouts, profile]);
 
   const totalGoal = profile?.totalGoal ?? DEFAULT_TOTAL_GOAL;
