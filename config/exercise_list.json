@@ -1,0 +1,197 @@
+{
+  "_comment": "Exercise definition schema: Each exercise maps to ScientificMuscle types with their relative contribution (0.0 to 1.0). A value of 1.0 means the muscle is the primary target, 0.5 means moderate involvement, 0.25 means minor involvement. Only non-zero values are included.",
+
+  "Pull Up": {
+    "Latissimus Dorsi": 1.0,
+    "Middle Trapezius": 0.6,
+    "Upper Trapezius": 0.2,
+    "Posterior Deltoid": 0.5,
+    "Biceps Brachii": 0.4
+  },
+
+  "Chin Up": {
+    "Latissimus Dorsi": 0.9,
+    "Middle Trapezius": 0.5,
+    "Upper Trapezius": 0.2,
+    "Posterior Deltoid": 0.4,
+    "Biceps Brachii": 0.8
+  },
+
+  "Dumbbell Row": {
+    "Latissimus Dorsi": 0.8,
+    "Middle Trapezius": 0.9,
+    "Upper Trapezius": 0.6,
+    "Posterior Deltoid": 0.6,
+    "Biceps Brachii": 0.4
+  },
+
+  "Seated Row": {
+    "Latissimus Dorsi": 0.9,
+    "Middle Trapezius": 1.0,
+    "Upper Trapezius": 0.5,
+    "Posterior Deltoid": 0.6,
+    "Biceps Brachii": 0.4
+  },
+
+  "Upright Row": {
+    "Latissimus Dorsi": 0.1,
+    "Middle Trapezius": 0.5,
+    "Upper Trapezius": 0.9,
+    "Posterior Deltoid": 0.3,
+    "Biceps Brachii": 0.2,
+    "Lateral Deltoid": 1.0
+  },
+
+  "Rear Delt Raise": {
+    "Latissimus Dorsi": 0.1,
+    "Middle Trapezius": 0.7,
+    "Upper Trapezius": 0.5,
+    "Posterior Deltoid": 1.0,
+    "Biceps Brachii": 0.2
+  },
+
+  "Shrug": {
+    "Middle Trapezius": 0.3,
+    "Upper Trapezius": 1.0
+  },
+
+  "Bicep Curl": {
+    "Biceps Brachii": 1.0
+  },
+
+  "Seated Incline Curl": {
+    "Biceps Brachii": 1.0
+  },
+
+  "Squat": {
+    "Quadriceps (Vasti)": 1.0,
+    "Quadriceps (RF)": 0.3,
+    "Gluteus Maximus": 0.8,
+    "Hamstrings": 0.1,
+    "Gastrocnemius": 0.2,
+    "Erector Spinae": 0.7
+  },
+
+  "Leg Press": {
+    "Quadriceps (Vasti)": 1.0,
+    "Quadriceps (RF)": 0.4,
+    "Gluteus Maximus": 0.4,
+    "Hamstrings": 0.1,
+    "Gastrocnemius": 0.1,
+    "Erector Spinae": 0.1
+  },
+
+  "Leg Extension": {
+    "Quadriceps (Vasti)": 0.9,
+    "Quadriceps (RF)": 1.0
+  },
+
+  "Good Morning": {
+    "Quadriceps (Vasti)": 0.4,
+    "Quadriceps (RF)": 0.2,
+    "Gluteus Maximus": 0.9,
+    "Hamstrings": 0.6,
+    "Gastrocnemius": 0.3,
+    "Erector Spinae": 0.9
+  },
+
+  "Romanian Deadlift": {
+    "Quadriceps (Vasti)": 0.2,
+    "Quadriceps (RF)": 0.1,
+    "Gluteus Maximus": 0.8,
+    "Hamstrings": 1.0,
+    "Gastrocnemius": 0.3,
+    "Erector Spinae": 0.8
+  },
+
+  "Hip Thrust": {
+    "Quadriceps (Vasti)": 0.3,
+    "Quadriceps (RF)": 0.1,
+    "Gluteus Maximus": 1.0,
+    "Hamstrings": 0.4,
+    "Erector Spinae": 0.2
+  },
+
+  "Seated Leg Curl": {
+    "Hamstrings": 1.0,
+    "Gastrocnemius": 0.2
+  },
+
+  "Lying Leg Curl": {
+    "Hamstrings": 0.7,
+    "Gastrocnemius": 0.2
+  },
+
+  "Standing Calf Raise": {
+    "Hamstrings": 0.1,
+    "Gastrocnemius": 1.0,
+    "Soleus": 1.0,
+    "Erector Spinae": 0.1
+  },
+
+  "Calf Press": {
+    "Soleus": 1.0
+  },
+
+  "Bench Press": {
+    "Pectoralis Major (Sternal)": 1.0,
+    "Pectoralis Major (Clavicular)": 0.5,
+    "Anterior Deltoid": 0.8,
+    "Lateral Deltoid": 0.1,
+    "Triceps (Lateral/Medial)": 0.7,
+    "Triceps (Long Head)": 0.2
+  },
+
+  "Incline Bench Press": {
+    "Pectoralis Major (Sternal)": 0.6,
+    "Pectoralis Major (Clavicular)": 1.0,
+    "Anterior Deltoid": 0.9,
+    "Lateral Deltoid": 0.2,
+    "Triceps (Lateral/Medial)": 0.6,
+    "Triceps (Long Head)": 0.2
+  },
+
+  "Chest Dip": {
+    "Pectoralis Major (Sternal)": 1.0,
+    "Pectoralis Major (Clavicular)": 0.2,
+    "Anterior Deltoid": 0.6,
+    "Lateral Deltoid": 0.1,
+    "Triceps (Lateral/Medial)": 0.7,
+    "Triceps (Long Head)": 0.3
+  },
+
+  "Triceps Extension": {
+    "Pectoralis Major (Sternal)": 0.3,
+    "Pectoralis Major (Clavicular)": 0.1,
+    "Anterior Deltoid": 0.5,
+    "Lateral Deltoid": 0.1,
+    "Triceps (Lateral/Medial)": 1.0,
+    "Triceps (Long Head)": 0.4
+  },
+
+  "Overhead Press": {
+    "Pectoralis Major (Clavicular)": 0.4,
+    "Anterior Deltoid": 1.0,
+    "Lateral Deltoid": 0.5,
+    "Triceps (Lateral/Medial)": 0.8,
+    "Triceps (Long Head)": 0.5
+  },
+
+  "Lateral Raise": {
+    "Anterior Deltoid": 0.2,
+    "Lateral Deltoid": 1.0
+  },
+
+  "Skullcrusher": {
+    "Anterior Deltoid": 0.1,
+    "Triceps (Lateral/Medial)": 1.0,
+    "Triceps (Long Head)": 0.8
+  },
+
+  "Chest Fly": {
+    "Pectoralis Major (Sternal)": 0.9,
+    "Pectoralis Major (Clavicular)": 0.5,
+    "Anterior Deltoid": 0.3,
+    "Triceps (Lateral/Medial)": 0.1
+  }
+}
