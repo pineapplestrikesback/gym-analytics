@@ -66,12 +66,25 @@ export interface UnmappedExercise {
 }
 
 /**
+ * User-defined exercise mapping to canonical exercises or ignore
+ */
+export interface ExerciseMapping {
+  id: string;
+  profileId: string;
+  originalPattern: string;
+  canonicalExerciseId: string | null;
+  isIgnored: boolean;
+  createdAt: Date;
+}
+
+/**
  * Dexie database class for ScientificMuscle
  */
 class ScientificMuscleDatabase extends Dexie {
   profiles!: Table<Profile, string>;
   workouts!: Table<Workout, string>;
   unmappedExercises!: Table<UnmappedExercise, string>;
+  exerciseMappings!: Table<ExerciseMapping, string>;
 
   constructor() {
     super('ScientificMuscleDB');
@@ -80,6 +93,13 @@ class ScientificMuscleDatabase extends Dexie {
       profiles: 'id, name',
       workouts: 'id, profileId, date, [profileId+date]',
       unmappedExercises: 'id, profileId, normalizedName, [profileId+normalizedName]',
+    });
+
+    this.version(2).stores({
+      profiles: 'id, name',
+      workouts: 'id, profileId, date, [profileId+date]',
+      unmappedExercises: 'id, profileId, normalizedName, [profileId+normalizedName]',
+      exerciseMappings: 'id, profileId, originalPattern, [profileId+originalPattern]',
     });
   }
 }

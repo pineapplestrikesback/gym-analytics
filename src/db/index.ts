@@ -13,6 +13,7 @@ export {
   type Workout,
   type WorkoutSet,
   type UnmappedExercise,
+  type ExerciseMapping,
 } from './schema';
 
 // Hooks
@@ -45,3 +46,18 @@ export {
   type DailyWorkout,
   type DailyExercise,
 } from './hooks/useDailyStats';
+
+export {
+  useUnmappedExercises,
+  useAddUnmappedExercise,
+  useIncrementUnmappedCount,
+  useTrackUnmappedExercise,
+  useDeleteUnmappedExercise,
+} from './hooks/useUnmappedExercises';
+
+export {
+  useExerciseMappings,
+  useCreateExerciseMapping,
+  useDeleteExerciseMapping,
+  useGetMappingByPattern,
+} from './hooks/useExerciseMappings';
