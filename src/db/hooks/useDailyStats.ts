@@ -111,6 +111,14 @@ function getStartOfToday(): Date {
 }
 
 /**
+ * Get the end of today in the user's local timezone (23:59:59.999)
+ */
+function getEndOfToday(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+}
+
+/**
  * Get the start of the current calendar week (Monday)
  */
 function getStartOfWeek(): Date {
@@ -240,7 +248,7 @@ export function useDailyStats(
       let endDate: Date;
 
       if (options.mode === 'last7days') {
-        endDate = getStartOfToday();
+        endDate = getEndOfToday();
         startDate = new Date(endDate);
         startDate.setDate(startDate.getDate() - 6); // 6 days back + today = 7 days
       } else {
