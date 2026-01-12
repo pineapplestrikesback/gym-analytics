@@ -211,10 +211,12 @@ async function fetchWorkoutEvents(
   let hasMore = true;
 
   while (hasMore) {
+    // Convert Unix timestamp (seconds) to ISO 8601 string for Hevy API
+    const sinceIso = new Date(since * 1000).toISOString();
     const response = await hevyFetch<HevyEventsResponse>('/workouts/events', apiKey, {
       page,
       pageSize: DEFAULT_PAGE_SIZE,
-      since,
+      since: sinceIso,
     });
 
     for (const event of response.events) {

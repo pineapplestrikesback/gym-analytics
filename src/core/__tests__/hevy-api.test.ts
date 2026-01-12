@@ -168,6 +168,33 @@ describe('hevy-api', () => {
   });
 
   describe('fetchHevyWorkouts - incremental sync', () => {
+    it('should send since parameter as ISO 8601 string', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          page: 1,
+          page_count: 1,
+          events: [],
+        }),
+      });
+
+      // Unix timestamp for 2024-01-01 00:00:00 UTC
+      const timestamp = 1704067200;
+      await fetchHevyWorkouts('api-key', timestamp);
+
+      // Verify the URL contains ISO 8601 formatted date, not Unix timestamp
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('since=2024-01-01T00%3A00%3A00.000Z'),
+        expect.any(Object)
+      );
+
+      // Should NOT contain the raw Unix timestamp
+      expect(mockFetch).not.toHaveBeenCalledWith(
+        expect.stringContaining('since=1704067200'),
+        expect.any(Object)
+      );
+    });
+
     it('should fetch events when lastSyncTimestamp provided', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
