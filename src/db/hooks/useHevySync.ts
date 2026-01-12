@@ -102,7 +102,8 @@ export function useHevySync(): {
       // Track unmapped exercises: collect unique exercises not in canonical list
       const unmappedExercises = new Map<string, { original: string; count: number }>();
 
-      await db.transaction('rw', [db.workouts, db.profiles, db.unmappedExercises], async () => {
+      // Process workouts in transaction (DB operations only)
+      await db.transaction('rw', [db.workouts, db.profiles], async () => {
         // Process deletions (for incremental sync)
         for (const deletedId of deletedIds) {
           const existing = await db.workouts.get(deletedId);
@@ -155,22 +156,23 @@ export function useHevySync(): {
           }
         }
 
-        // Track all unmapped exercises
-        for (const [key, data] of unmappedExercises) {
-          const [profileId, normalizedName] = key.split(':');
-
-          // Track unmapped exercise (will create or increment count)
-          if (profileId && normalizedName) {
-            await trackUnmapped(profileId, data.original, normalizedName);
-          }
-        }
-
         // Update lastSyncTimestamp on the profile
         const newTimestamp = Math.floor(Date.now() / 1000);
         await db.profiles.update(profile.id, {
           lastSyncTimestamp: newTimestamp,
         });
       });
+
+      // Track all unmapped exercises AFTER transaction completes
+      // This must be outside the transaction because trackUnmapped does its own DB operations
+      for (const [key, data] of unmappedExercises) {
+        const [profileId, normalizedName] = key.split(':');
+
+        // Track unmapped exercise (will create or increment count)
+        if (profileId && normalizedName) {
+          await trackUnmapped(profileId, data.original, normalizedName);
+        }
+      }
 
       return { syncType, imported, updated, deleted, skipped };
     },
