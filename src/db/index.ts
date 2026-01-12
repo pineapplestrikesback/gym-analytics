@@ -58,6 +58,7 @@ export {
 export {
   useExerciseMappings,
   useCreateExerciseMapping,
+  useUpdateExerciseMapping,
   useDeleteExerciseMapping,
   useGetMappingByPattern,
 } from './hooks/useExerciseMappings';

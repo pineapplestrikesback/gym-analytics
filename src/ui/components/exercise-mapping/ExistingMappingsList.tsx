@@ -1,10 +1,13 @@
 /**
  * Existing Mappings List Component
- * Shows all user-created exercise mappings with delete functionality
+ * Shows all user-created exercise mappings with edit and delete functionality
  */
 
+import { useState } from 'react';
 import { useExerciseMappings, useDeleteExerciseMapping } from '@db/hooks/useExerciseMappings';
 import { getAllCanonicalExercises } from '@core/exercise-search';
+import type { ExerciseMapping, UnmappedExercise } from '@db/schema';
+import { ExerciseSearchModal } from './ExerciseSearchModal';
 
 interface ExistingMappingsListProps {
   profileId: string;
@@ -13,9 +16,20 @@ interface ExistingMappingsListProps {
 export function ExistingMappingsList({ profileId }: ExistingMappingsListProps): React.ReactElement {
   const { mappings, isLoading } = useExerciseMappings(profileId);
   const { deleteMapping, isDeleting } = useDeleteExerciseMapping();
+  const [editingMapping, setEditingMapping] = useState<ExerciseMapping | null>(null);
 
   // Create a lookup map for canonical exercise names
   const exerciseMap = new Map(getAllCanonicalExercises().map((ex) => [ex.id, ex.name]));
+
+  // Create a fake UnmappedExercise for editing existing mappings
+  const createUnmappedForEdit = (mapping: ExerciseMapping): UnmappedExercise => ({
+    id: `edit-${mapping.id}`,
+    profileId: mapping.profileId,
+    originalName: mapping.originalPattern,
+    normalizedName: mapping.originalPattern,
+    firstSeenAt: mapping.createdAt,
+    occurrenceCount: 0,
+  });
 
   const handleDelete = async (id: string): Promise<void> => {
     if (window.confirm('Delete this mapping? The exercise will return to the unmapped list.')) {
@@ -163,7 +177,7 @@ export function ExistingMappingsList({ profileId }: ExistingMappingsListProps): 
                   </span>
                 </div>
 
-                {/* Canonical Name or Ignored */}
+                {/* Canonical Name, Custom Mapping, or Ignored */}
                 <div className="pl-3">
                   {mapping.isIgnored ? (
                     <div className="inline-flex items-center gap-2 rounded border-2 border-amber-900 bg-amber-950/50 px-3 py-1.5">
@@ -183,6 +197,30 @@ export function ExistingMappingsList({ profileId }: ExistingMappingsListProps): 
                       <span className="font-mono text-sm font-bold uppercase text-amber-500">
                         Ignored
                       </span>
+                    </div>
+                  ) : mapping.customMuscleValues ? (
+                    <div>
+                      <div className="inline-flex items-center gap-2 rounded border-2 border-purple-900 bg-purple-950/50 px-3 py-1.5">
+                        <svg
+                          className="h-4 w-4 text-purple-500"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                          />
+                        </svg>
+                        <span className="font-mono text-sm font-bold uppercase text-purple-500">
+                          Custom Mapping
+                        </span>
+                      </div>
+                      <div className="mt-2 text-xs text-zinc-500">
+                        {Object.keys(mapping.customMuscleValues).length} muscles defined
+                      </div>
                     </div>
                   ) : (
                     <div className="font-mono text-lg font-bold text-white">{canonicalName}</div>
@@ -215,29 +253,61 @@ export function ExistingMappingsList({ profileId }: ExistingMappingsListProps): 
                 </div>
               </div>
 
-              {/* Delete Button */}
-              <button
-                onClick={() => void handleDelete(mapping.id)}
-                disabled={isDeleting}
-                className="group/btn relative shrink-0 overflow-hidden border-2 border-red-900 bg-red-950 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-red-500 transition-all duration-200 hover:border-red-700 hover:bg-red-900 hover:text-red-400 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] active:scale-95 disabled:opacity-50"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-red-800/50 to-transparent opacity-0 transition-opacity duration-200 group-hover/btn:opacity-100" />
-                <div className="relative flex items-center gap-2">
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                  <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
-                </div>
-              </button>
+              {/* Action Buttons */}
+              <div className="flex shrink-0 gap-2">
+                {/* Edit Button */}
+                <button
+                  onClick={() => setEditingMapping(mapping)}
+                  className="group/btn relative overflow-hidden border-2 border-cyan-900 bg-cyan-950 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-cyan-500 transition-all duration-200 hover:border-cyan-700 hover:bg-cyan-900 hover:text-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] active:scale-95"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-cyan-800/50 to-transparent opacity-0 transition-opacity duration-200 group-hover/btn:opacity-100" />
+                  <div className="relative flex items-center gap-2">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                    <span>Edit</span>
+                  </div>
+                </button>
+
+                {/* Delete Button */}
+                <button
+                  onClick={() => void handleDelete(mapping.id)}
+                  disabled={isDeleting}
+                  className="group/btn relative overflow-hidden border-2 border-red-900 bg-red-950 px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-red-500 transition-all duration-200 hover:border-red-700 hover:bg-red-900 hover:text-red-400 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] active:scale-95 disabled:opacity-50"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-red-800/50 to-transparent opacity-0 transition-opacity duration-200 group-hover/btn:opacity-100" />
+                  <div className="relative flex items-center gap-2">
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         );
       })}
+
+      {/* Edit Modal */}
+      {editingMapping && (
+        <ExerciseSearchModal
+          profileId={profileId}
+          unmappedExercise={createUnmappedForEdit(editingMapping)}
+          editingMapping={editingMapping}
+          onClose={() => setEditingMapping(null)}
+        />
+      )}
     </div>
   );
 }

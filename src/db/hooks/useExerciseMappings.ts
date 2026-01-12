@@ -106,6 +106,39 @@ export function useDeleteExerciseMapping(): {
 }
 
 /**
+ * Update an existing mapping
+ */
+export function useUpdateExerciseMapping(): {
+  updateMapping: (
+    id: string,
+    updates: Partial<Omit<ExerciseMapping, 'id' | 'createdAt'>>
+  ) => Promise<void>;
+  isUpdating: boolean;
+} {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<Omit<ExerciseMapping, 'id' | 'createdAt'>>;
+    }) => {
+      await db.exerciseMappings.update(id, updates);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: EXERCISE_MAPPINGS_KEY });
+    },
+  });
+
+  return {
+    updateMapping: (id, updates) => mutation.mutateAsync({ id, updates }),
+    isUpdating: mutation.isPending,
+  };
+}
+
+/**
  * Get a single mapping by original pattern (for lookups during volume calc)
  */
 export function useGetMappingByPattern(

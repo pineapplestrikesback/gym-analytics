@@ -66,13 +66,14 @@ export interface UnmappedExercise {
 }
 
 /**
- * User-defined exercise mapping to canonical exercises or ignore
+ * User-defined exercise mapping to canonical exercises or custom muscle values
  */
 export interface ExerciseMapping {
   id: string;
   profileId: string;
   originalPattern: string;
   canonicalExerciseId: string | null;
+  customMuscleValues: Partial<Record<ScientificMuscle, number>> | null;
   isIgnored: boolean;
   createdAt: Date;
 }
