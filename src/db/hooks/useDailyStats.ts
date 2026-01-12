@@ -132,6 +132,16 @@ function getDayLabel(date: Date): string {
 }
 
 /**
+ * Convert a Date to a local date key (YYYY-MM-DD) using local timezone
+ */
+function toLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Process workouts into daily breakdown
  */
 function processDailyActivities(
@@ -143,7 +153,7 @@ function processDailyActivities(
   const workoutsByDate = new Map<string, Workout[]>();
 
   for (const workout of workouts) {
-    const [dateKey = ''] = workout.date.toISOString().split('T');
+    const dateKey = toLocalDateKey(workout.date);
     const existing = workoutsByDate.get(dateKey) ?? [];
     existing.push(workout);
     workoutsByDate.set(dateKey, existing);
@@ -154,7 +164,7 @@ function processDailyActivities(
   const currentDate = new Date(startDate);
 
   while (currentDate <= endDate) {
-    const [dateKey = ''] = currentDate.toISOString().split('T');
+    const dateKey = toLocalDateKey(currentDate);
     const dayWorkouts = workoutsByDate.get(dateKey) ?? [];
 
     const dailyWorkouts: DailyWorkout[] = dayWorkouts.map((workout) => {
