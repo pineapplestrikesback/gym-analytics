@@ -102,6 +102,13 @@ export function useHevySync(): {
       // Track unmapped exercises: collect unique exercises not in canonical list
       const unmappedExercises = new Map<string, { original: string; count: number }>();
 
+      // Get existing user mappings to avoid re-adding mapped exercises as unmapped
+      const existingMappings = await db.exerciseMappings
+        .where('profileId')
+        .equals(profile.id)
+        .toArray();
+      const mappedPatterns = new Set(existingMappings.map(m => m.originalPattern));
+
       // Process workouts in transaction (DB operations only)
       await db.transaction('rw', [db.workouts, db.profiles], async () => {
         // Process deletions (for incremental sync)
@@ -137,8 +144,8 @@ export function useHevySync(): {
           for (const set of dbWorkout.sets) {
             const exerciseId = set.exerciseId;
 
-            // If not in canonical list, track as unmapped
-            if (!CANONICAL_IDS.has(exerciseId)) {
+            // If not in canonical list AND not already mapped by user, track as unmapped
+            if (!CANONICAL_IDS.has(exerciseId) && !mappedPatterns.has(exerciseId)) {
               const key = `${profile.id}:${exerciseId}`;
 
               if (!unmappedExercises.has(key)) {
