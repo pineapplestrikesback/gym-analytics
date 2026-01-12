@@ -14,7 +14,6 @@ import { WeeklyActivityChart } from '../components/WeeklyActivityChart';
 export function Dashboard(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
   const { count: unmappedCount } = useUnmappedExercises(currentProfile?.id ?? null);
-  const [showDetails, setShowDetails] = useState(false);
   const [dismissedAlert, setDismissedAlert] = useState(false);
 
   if (isLoading) {
@@ -80,17 +79,11 @@ export function Dashboard(): React.ReactElement {
 
       {/* This Week Section */}
       <div className="rounded-lg bg-primary-700 p-6">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4">
           <h3 className="text-lg font-semibold text-white">This Week</h3>
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="rounded bg-primary-500 px-4 py-2 text-sm text-white transition-colors hover:bg-primary-400"
-          >
-            {showDetails ? 'Hide Details' : 'View Details'}
-          </button>
         </div>
 
-        <MuscleVolumeGrid showDetails={showDetails} />
+        <MuscleVolumeGrid />
       </div>
 
       {/* Total Volume */}
