@@ -6,7 +6,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useCurrentProfile } from '../context/ProfileContext';
-import { useImportWorkouts } from '@db/hooks/useWorkouts';
+import { useEnhancedImport } from '@db/hooks/useEnhancedImport';
 import { useUpdateProfile } from '@db/hooks/useProfiles';
 import { useHevySync, useValidateHevyApiKey, type HevySyncResult } from '@db/hooks/useHevySync';
 import { useUnmappedExercises } from '@db/hooks/useUnmappedExercises';
@@ -15,7 +15,7 @@ import type { Workout } from '@db/schema';
 
 export function Settings(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
-  const { importWorkouts, isImporting } = useImportWorkouts();
+  const { importWorkouts, isImporting } = useEnhancedImport();
   const { updateProfile, isUpdating } = useUpdateProfile();
   const { syncWorkouts, isSyncing } = useHevySync();
   const { validateKey, isValidating } = useValidateHevyApiKey();
@@ -25,6 +25,7 @@ export function Settings(): React.ReactElement {
   const [importResult, setImportResult] = useState<{
     imported: number;
     skipped: number;
+    unmappedCount?: number;
   } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
@@ -296,6 +297,12 @@ export function Settings(): React.ReactElement {
             <div className="rounded bg-green-800 p-3 text-green-100">
               Successfully imported {importResult.imported} workout(s).
               {importResult.skipped > 0 && ` Skipped ${importResult.skipped} duplicate(s).`}
+              {importResult.unmappedCount && importResult.unmappedCount > 0 && (
+                <span className="block mt-1 text-sm">
+                  Found {importResult.unmappedCount} unmapped exercise(s). Visit Exercise Mappings
+                  to map them.
+                </span>
+              )}
             </div>
           )}
 
