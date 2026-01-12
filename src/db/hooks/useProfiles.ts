@@ -115,11 +115,16 @@ export function useDeleteProfile(): {
 
   const mutation = useMutation({
     mutationFn: async (profileId: string) => {
-      await db.transaction('rw', [db.profiles, db.workouts, db.unmappedExercises], async () => {
-        await db.profiles.delete(profileId);
-        await db.workouts.where('profileId').equals(profileId).delete();
-        await db.unmappedExercises.where('profileId').equals(profileId).delete();
-      });
+      await db.transaction(
+        'rw',
+        [db.profiles, db.workouts, db.unmappedExercises, db.exerciseMappings],
+        async () => {
+          await db.profiles.delete(profileId);
+          await db.workouts.where('profileId').equals(profileId).delete();
+          await db.unmappedExercises.where('profileId').equals(profileId).delete();
+          await db.exerciseMappings.where('profileId').equals(profileId).delete();
+        }
+      );
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PROFILES_KEY });

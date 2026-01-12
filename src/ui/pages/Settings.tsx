@@ -4,24 +4,28 @@
  */
 
 import { useState, type ChangeEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useCurrentProfile } from '../context/ProfileContext';
-import { useImportWorkouts } from '@db/hooks/useWorkouts';
+import { useEnhancedImport } from '@db/hooks/useEnhancedImport';
 import { useUpdateProfile } from '@db/hooks/useProfiles';
 import { useHevySync, useValidateHevyApiKey, type HevySyncResult } from '@db/hooks/useHevySync';
+import { useUnmappedExercises } from '@db/hooks/useUnmappedExercises';
 import { parseCsv } from '@core/parsers/csv-parser';
 import type { Workout } from '@db/schema';
 
 export function Settings(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
-  const { importWorkouts, isImporting } = useImportWorkouts();
+  const { importWorkouts, isImporting } = useEnhancedImport();
   const { updateProfile, isUpdating } = useUpdateProfile();
   const { syncWorkouts, isSyncing } = useHevySync();
   const { validateKey, isValidating } = useValidateHevyApiKey();
+  const { count: unmappedCount } = useUnmappedExercises(currentProfile?.id ?? null);
 
   // CSV import state
   const [importResult, setImportResult] = useState<{
     imported: number;
     skipped: number;
+    unmappedCount?: number;
   } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
@@ -293,6 +297,12 @@ export function Settings(): React.ReactElement {
             <div className="rounded bg-green-800 p-3 text-green-100">
               Successfully imported {importResult.imported} workout(s).
               {importResult.skipped > 0 && ` Skipped ${importResult.skipped} duplicate(s).`}
+              {importResult.unmappedCount && importResult.unmappedCount > 0 && (
+                <span className="block mt-1 text-sm">
+                  Found {importResult.unmappedCount} unmapped exercise(s). Visit Exercise Mappings
+                  to map them.
+                </span>
+              )}
             </div>
           )}
 
@@ -310,6 +320,33 @@ export function Settings(): React.ReactElement {
           <p className="text-sm text-primary-300">
             Custom goal editing will be available in a future update.
           </p>
+        </div>
+      </section>
+
+      {/* Exercise Mappings Section */}
+      <section className="rounded-lg bg-primary-700 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white">
+              Exercise Mappings
+              {unmappedCount > 0 && (
+                <span className="ml-2 inline-flex items-center rounded-full bg-amber-500 px-2.5 py-0.5 text-xs font-medium text-black">
+                  {unmappedCount} unmapped
+                </span>
+              )}
+            </h3>
+            <p className="mt-1 text-sm text-primary-300">
+              {unmappedCount > 0
+                ? 'Some exercises need manual mapping for accurate volume tracking.'
+                : 'All exercises are mapped correctly.'}
+            </p>
+          </div>
+          <Link
+            to="/settings/exercise-mappings"
+            className="rounded bg-cyan-500 px-4 py-2 font-medium text-black transition-colors hover:bg-cyan-400"
+          >
+            Manage Mappings
+          </Link>
         </div>
       </section>
     </div>

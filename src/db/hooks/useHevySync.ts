@@ -9,8 +9,24 @@ import {
   validateHevyApiKey,
   type HevyWorkoutResult,
 } from '@core/parsers/hevy-api';
+import { useTrackUnmappedExercise } from './useUnmappedExercises';
+import exerciseListJson from '../../../config/exercise_list.json';
+
+// Build set of canonical exercise IDs for unmapped detection
+function getCanonicalExerciseIds(): Set<string> {
+  const ids = new Set<string>();
+  for (const exerciseName of Object.keys(exerciseListJson)) {
+    if (exerciseName === '_comment') continue;
+    const normalizedId = exerciseName.toLowerCase().replace(/\s+/g, '-');
+    ids.add(normalizedId);
+  }
+  return ids;
+}
+
+const CANONICAL_IDS = getCanonicalExerciseIds();
 
 const WORKOUTS_KEY = ['workouts'];
+const UNMAPPED_EXERCISES_KEY = ['unmappedExercises'];
 const PROFILES_KEY = ['profiles'];
 
 /**
@@ -64,6 +80,7 @@ export function useHevySync(): {
   error: Error | null;
 } {
   const queryClient = useQueryClient();
+  const { trackUnmapped } = useTrackUnmappedExercise();
 
   const mutation = useMutation({
     mutationFn: async (profile: Profile): Promise<HevySyncResult> => {
@@ -82,7 +99,10 @@ export function useHevySync(): {
       let deleted = 0;
       let skipped = 0;
 
-      await db.transaction('rw', [db.workouts, db.profiles], async () => {
+      // Track unmapped exercises: collect unique exercises not in canonical list
+      const unmappedExercises = new Map<string, { original: string; count: number }>();
+
+      await db.transaction('rw', [db.workouts, db.profiles, db.unmappedExercises], async () => {
         // Process deletions (for incremental sync)
         for (const deletedId of deletedIds) {
           const existing = await db.workouts.get(deletedId);
@@ -111,6 +131,38 @@ export function useHevySync(): {
             await db.workouts.add(dbWorkout);
             imported++;
           }
+
+          // Check each exercise in the workout for unmapped ones
+          for (const set of dbWorkout.sets) {
+            const exerciseId = set.exerciseId;
+
+            // If not in canonical list, track as unmapped
+            if (!CANONICAL_IDS.has(exerciseId)) {
+              const key = `${profile.id}:${exerciseId}`;
+
+              if (!unmappedExercises.has(key)) {
+                unmappedExercises.set(key, {
+                  original: set.originalName,
+                  count: 0,
+                });
+              }
+
+              const entry = unmappedExercises.get(key);
+              if (entry) {
+                entry.count++;
+              }
+            }
+          }
+        }
+
+        // Track all unmapped exercises
+        for (const [key, data] of unmappedExercises) {
+          const [profileId, normalizedName] = key.split(':');
+
+          // Track unmapped exercise (will create or increment count)
+          if (profileId && normalizedName) {
+            await trackUnmapped(profileId, data.original, normalizedName);
+          }
         }
 
         // Update lastSyncTimestamp on the profile
@@ -125,6 +177,7 @@ export function useHevySync(): {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: WORKOUTS_KEY });
       void queryClient.invalidateQueries({ queryKey: PROFILES_KEY });
+      void queryClient.invalidateQueries({ queryKey: UNMAPPED_EXERCISES_KEY });
     },
   });
 
