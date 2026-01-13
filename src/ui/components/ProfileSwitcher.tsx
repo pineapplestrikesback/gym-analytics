@@ -6,13 +6,21 @@
 import { useState } from 'react';
 import { useCurrentProfile } from '../context/ProfileContext';
 import { useCreateProfile } from '@db/hooks/useProfiles';
+import { useHevySync } from '@db/hooks/useHevySync';
 
 export function ProfileSwitcher(): React.ReactElement {
   const { currentProfile, setCurrentProfileId, profiles, isLoading } = useCurrentProfile();
   const { createProfile, isCreating } = useCreateProfile();
+  const { syncWorkouts, isSyncing } = useHevySync();
   const [isOpen, setIsOpen] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
+
+  const handleSync = (): void => {
+    if (currentProfile) {
+      void syncWorkouts(currentProfile);
+    }
+  };
 
   const handleSelectProfile = (profileId: string): void => {
     setCurrentProfileId(profileId);
@@ -43,23 +51,49 @@ export function ProfileSwitcher(): React.ReactElement {
   }
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-white transition-colors hover:bg-primary-400"
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-      >
-        <span className="max-w-[120px] truncate">{currentProfile?.name ?? 'Select Profile'}</span>
-        <svg
-          className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+    <div className="flex items-center gap-2">
+      {/* Sync button - only show if profile has API key */}
+      {currentProfile?.hevyApiKey && (
+        <button
+          onClick={handleSync}
+          disabled={isSyncing}
+          className="flex items-center justify-center rounded-lg bg-accent-orange p-2 text-white transition-colors hover:bg-orange-500 disabled:opacity-50"
+          title={isSyncing ? 'Syncing...' : 'Sync workouts'}
+          aria-label={isSyncing ? 'Syncing workouts' : 'Sync workouts'}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+          {isSyncing ? (
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          ) : (
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          )}
+        </button>
+      )}
+
+      {/* Profile dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 text-white transition-colors hover:bg-primary-400"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+        >
+          <span className="max-w-[120px] truncate">{currentProfile?.name ?? 'Select Profile'}</span>
+          <svg
+            className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
 
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-2 min-w-[200px] rounded-lg border border-primary-400 bg-primary-700 py-1 shadow-lg">
@@ -135,17 +169,18 @@ export function ProfileSwitcher(): React.ReactElement {
         </div>
       )}
 
-      {/* Click outside to close */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => {
-            setIsOpen(false);
-            setIsCreatingNew(false);
-            setNewProfileName('');
-          }}
-        />
-      )}
+        {/* Click outside to close */}
+        {isOpen && (
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => {
+              setIsOpen(false);
+              setIsCreatingNew(false);
+              setNewProfileName('');
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
