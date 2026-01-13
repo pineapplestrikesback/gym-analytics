@@ -12,6 +12,8 @@ import { useHevySync, useValidateHevyApiKey, type HevySyncResult } from '@db/hoo
 import { useUnmappedExercises } from '@db/hooks/useUnmappedExercises';
 import { parseCsv } from '@core/parsers/csv-parser';
 import type { Workout } from '@db/schema';
+import type { ScientificMuscle } from '@core/taxonomy';
+import { WeeklyGoalEditor } from '../components/WeeklyGoalEditor';
 
 export function Settings(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
@@ -118,6 +120,19 @@ export function Settings(): React.ReactElement {
     } catch (err) {
       setSyncError(err instanceof Error ? err.message : 'Failed to sync workouts');
     }
+  };
+
+  const handleSaveGoals = async (
+    goals: Partial<Record<ScientificMuscle, number>>,
+    totalGoal: number
+  ): Promise<void> => {
+    if (!currentProfile) return;
+
+    await updateProfile({
+      ...currentProfile,
+      goals,
+      totalGoal,
+    });
   };
 
   if (isLoading) {
@@ -313,14 +328,12 @@ export function Settings(): React.ReactElement {
       {/* Goals Section */}
       <section className="rounded-lg bg-primary-700 p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">Weekly Goals</h3>
-        <div className="space-y-2">
-          <p className="text-primary-200">
-            Default goals: 20 sets per muscle, {currentProfile.totalGoal} total sets per week.
-          </p>
-          <p className="text-sm text-primary-300">
-            Custom goal editing will be available in a future update.
-          </p>
-        </div>
+        <WeeklyGoalEditor
+          goals={currentProfile.goals}
+          totalGoal={currentProfile.totalGoal}
+          onSave={handleSaveGoals}
+          isSaving={isUpdating}
+        />
       </section>
 
       {/* Exercise Mappings Section */}
