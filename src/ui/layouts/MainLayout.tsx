@@ -5,6 +5,7 @@
 
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { ProfileSwitcher } from '../components/ProfileSwitcher';
+import { OfflineIndicator } from '../components/OfflineIndicator';
 
 export function MainLayout(): React.ReactElement {
   const location = useLocation();
@@ -49,6 +50,9 @@ export function MainLayout(): React.ReactElement {
       <main className="mx-auto max-w-6xl px-4 py-8">
         <Outlet />
       </main>
+
+      {/* Offline Indicator */}
+      <OfflineIndicator />
     </div>
   );
 }

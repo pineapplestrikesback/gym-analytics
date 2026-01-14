@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Dumbbell icon for GymAnalytics PWA -->
+  <!-- Left weight plate -->
+  <rect x="48" y="176" width="64" height="160" rx="8" fill="#22d3ee"/>
+  <!-- Left inner plate -->
+  <rect x="112" y="208" width="40" height="96" rx="4" fill="#22d3ee"/>
+  <!-- Bar -->
+  <rect x="152" y="240" width="208" height="32" rx="4" fill="#22d3ee"/>
+  <!-- Right inner plate -->
+  <rect x="360" y="208" width="40" height="96" rx="4" fill="#22d3ee"/>
+  <!-- Right weight plate -->
+  <rect x="400" y="176" width="64" height="160" rx="8" fill="#22d3ee"/>
+</svg>
