@@ -10,10 +10,10 @@ registerSW({
   onOfflineReady() {
     console.log('App ready to work offline');
   },
-  onRegistered(registration) {
+  onRegistered(registration: ServiceWorkerRegistration | undefined) {
     console.log('Service worker registered:', registration);
   },
-  onRegisterError(error) {
+  onRegisterError(error: Error) {
     console.error('Service worker registration error:', error);
   },
 });
