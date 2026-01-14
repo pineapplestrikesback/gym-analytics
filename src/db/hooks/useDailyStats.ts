@@ -103,14 +103,6 @@ function getExerciseMuscles(exerciseId: string): FunctionalGroup[] {
 }
 
 /**
- * Get the start of today in the user's local timezone
- */
-function getStartOfToday(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-/**
  * Get the end of today in the user's local timezone (23:59:59.999)
  */
 function getEndOfToday(): Date {
