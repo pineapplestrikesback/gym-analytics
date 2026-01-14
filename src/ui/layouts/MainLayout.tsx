@@ -16,7 +16,7 @@ export function MainLayout(): React.ReactElement {
     <div className="min-h-screen bg-primary-800">
       {/* Header */}
       <header className="border-b border-primary-600 bg-primary-900">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
           {/* Logo and Title */}
           <Link to="/" className="flex items-center gap-3">
             <span className="text-2xl">🏋️</span>
@@ -24,23 +24,25 @@ export function MainLayout(): React.ReactElement {
           </Link>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-6">
-            <Link
-              to="/"
-              className={`text-sm font-medium transition-colors ${
-                isActive('/') ? 'text-white' : 'text-primary-200 hover:text-white'
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/settings"
-              className={`text-sm font-medium transition-colors ${
-                isActive('/settings') ? 'text-white' : 'text-primary-200 hover:text-white'
-              }`}
-            >
-              Settings
-            </Link>
+          <nav className="flex items-center justify-between gap-4 sm:gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <Link
+                to="/"
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/') ? 'text-white' : 'text-primary-200 hover:text-white'
+                }`}
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/settings"
+                className={`text-sm font-medium transition-colors ${
+                  isActive('/settings') ? 'text-white' : 'text-primary-200 hover:text-white'
+                }`}
+              >
+                Settings
+              </Link>
+            </div>
             <ProfileSwitcher />
           </nav>
         </div>
