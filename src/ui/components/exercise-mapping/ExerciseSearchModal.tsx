@@ -15,7 +15,7 @@ import type { UnmappedExercise, ExerciseMapping } from '@db/schema';
 import type { ExerciseSearchResult } from '@core/exercise-search';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { MuscleValueEditor } from './MuscleValueEditor';
-import exerciseListJson from '../../../../config/exercise_list.json';
+import exerciseListJson from '../../../../config/exercise_list_complete.json';
 
 type TabType = 'search' | 'copyEdit' | 'scratch';
 

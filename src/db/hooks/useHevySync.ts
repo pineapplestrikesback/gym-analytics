@@ -10,7 +10,7 @@ import {
   type HevyWorkoutResult,
 } from '@core/parsers/hevy-api';
 import { useTrackUnmappedExercise } from './useUnmappedExercises';
-import exerciseListJson from '../../../config/exercise_list.json';
+import exerciseListJson from '../../../config/exercise_list_complete.json';
 
 // Build set of canonical exercise IDs for unmapped detection
 function getCanonicalExerciseIds(): Set<string> {

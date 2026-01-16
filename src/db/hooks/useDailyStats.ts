@@ -7,7 +7,7 @@ import { db, type Workout } from '../schema';
 import type { FunctionalGroup, ExerciseMapping } from '@core/taxonomy';
 
 // Load exercise mappings from config
-import exerciseListJson from '../../../config/exercise_list.json';
+import exerciseListJson from '../../../config/exercise_list_complete.json';
 
 const DAILY_STATS_KEY = ['dailyStats'];
 

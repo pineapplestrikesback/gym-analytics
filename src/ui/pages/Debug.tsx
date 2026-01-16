@@ -10,7 +10,7 @@ import { calculateMuscleVolume } from '@core/volume-calculator';
 import type { ExerciseMapping } from '@core/taxonomy';
 
 // Load exercise mappings from config
-import exerciseListJson from '../../../config/exercise_list.json';
+import exerciseListJson from '../../../config/exercise_list_complete.json';
 
 /**
  * Build exercise mappings from the config JSON

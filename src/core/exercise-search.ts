@@ -1,4 +1,4 @@
-import exerciseListJson from '../../config/exercise_list.json';
+import exerciseListJson from '../../config/exercise_list_complete.json';
 import { normalizeId } from './utils/normalization';
 
 /**
