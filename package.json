@@ -26,6 +26,7 @@
   "homepage": "https://github.com/pineapplestrikesback/gym-analytics#readme",
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
+    "@vercel/analytics": "^1.6.1",
     "autoprefixer": "^10.4.23",
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
