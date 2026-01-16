@@ -6,6 +6,8 @@
 import { useState } from 'react';
 import { useUnmappedExercises } from '@db/hooks/useUnmappedExercises';
 import { ExerciseSearchModal } from './ExerciseSearchModal';
+import { AutoMatchReviewModal } from './AutoMatchReviewModal';
+import { generateAutoMatchSuggestions, type AutoMatchSuggestion } from '@core/exercise-auto-match';
 import type { UnmappedExercise } from '@db/schema';
 
 interface UnmappedExerciseListProps {
@@ -15,6 +17,13 @@ interface UnmappedExerciseListProps {
 export function UnmappedExerciseList({ profileId }: UnmappedExerciseListProps): React.ReactElement {
   const { unmappedExercises, count, isLoading } = useUnmappedExercises(profileId);
   const [selectedExercise, setSelectedExercise] = useState<UnmappedExercise | null>(null);
+  const [autoMatchSuggestions, setAutoMatchSuggestions] = useState<AutoMatchSuggestion[] | null>(null);
+
+  // Handle auto-match button click
+  const handleAutoMatch = (): void => {
+    const suggestions = generateAutoMatchSuggestions(unmappedExercises);
+    setAutoMatchSuggestions(suggestions);
+  };
 
   if (isLoading) {
     return (
@@ -86,14 +95,40 @@ export function UnmappedExerciseList({ profileId }: UnmappedExerciseListProps): 
           style={{ animation: 'fadeIn 0.3s ease-out' }}
         >
           <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-cyan-500/5 to-transparent" />
-          <div className="relative flex items-center justify-between">
-            <div className="font-mono text-sm uppercase tracking-wider text-zinc-500">
-              Total Unmapped
+          <div className="relative space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="font-mono text-sm uppercase tracking-wider text-zinc-500">
+                Total Unmapped
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-4xl font-black text-cyan-500">{count}</span>
+                <span className="font-mono text-sm text-zinc-600">exercises</span>
+              </div>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-mono text-4xl font-black text-cyan-500">{count}</span>
-              <span className="font-mono text-sm text-zinc-600">exercises</span>
-            </div>
+            {/* Auto Match Button */}
+            <button
+              onClick={handleAutoMatch}
+              disabled={count === 0}
+              className="group relative w-full overflow-hidden border-2 border-cyan-500/50 bg-cyan-500/5 px-4 py-3 font-mono text-sm font-bold uppercase tracking-wider text-cyan-500 transition-all hover:border-cyan-500 hover:bg-cyan-500/10 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="relative flex items-center justify-center gap-2">
+                <svg
+                  className="h-4 w-4 transition-transform group-hover:scale-110"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+                <span>Auto Match Exercises</span>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -167,6 +202,16 @@ export function UnmappedExerciseList({ profileId }: UnmappedExerciseListProps): 
           profileId={profileId}
           unmappedExercise={selectedExercise}
           onClose={() => setSelectedExercise(null)}
+        />
+      )}
+
+      {/* Auto Match Review Modal */}
+      {autoMatchSuggestions && (
+        <AutoMatchReviewModal
+          profileId={profileId}
+          suggestions={autoMatchSuggestions}
+          unmappedExercises={unmappedExercises}
+          onClose={() => setAutoMatchSuggestions(null)}
         />
       )}
     </>
