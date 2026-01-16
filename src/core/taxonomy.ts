@@ -1,12 +1,13 @@
 /**
- * ScientificMuscle represents the 18 individual muscles tracked in the system.
- * These are derived from the exercise_list.json mappings.
+ * ScientificMuscle represents the 26 individual muscles tracked in the system.
+ * These are derived from the exercise_list_complete.json mappings.
  */
 export type ScientificMuscle =
   // Back
   | 'Latissimus Dorsi'
   | 'Middle Trapezius'
   | 'Upper Trapezius'
+  | 'Lower Trapezius'
   | 'Erector Spinae'
   // Shoulders
   | 'Posterior Deltoid'
@@ -20,12 +21,21 @@ export type ScientificMuscle =
   | 'Quadriceps (Vasti)'
   | 'Quadriceps (RF)'
   | 'Gluteus Maximus'
+  | 'Gluteus Medius'
   | 'Hamstrings'
+  | 'Adductors'
   | 'Gastrocnemius'
   | 'Soleus'
   // Chest
   | 'Pectoralis Major (Sternal)'
-  | 'Pectoralis Major (Clavicular)';
+  | 'Pectoralis Major (Clavicular)'
+  // Core
+  | 'Rectus Abdominis'
+  | 'Obliques'
+  | 'Hip Flexors'
+  // Forearms
+  | 'Forearm Flexors'
+  | 'Forearm Extensors';
 
 /**
  * Array of all ScientificMuscle values for iteration.
@@ -35,6 +45,7 @@ export const SCIENTIFIC_MUSCLES: readonly ScientificMuscle[] = [
   'Latissimus Dorsi',
   'Middle Trapezius',
   'Upper Trapezius',
+  'Lower Trapezius',
   'Erector Spinae',
   // Shoulders
   'Posterior Deltoid',
@@ -48,12 +59,21 @@ export const SCIENTIFIC_MUSCLES: readonly ScientificMuscle[] = [
   'Quadriceps (Vasti)',
   'Quadriceps (RF)',
   'Gluteus Maximus',
+  'Gluteus Medius',
   'Hamstrings',
+  'Adductors',
   'Gastrocnemius',
   'Soleus',
   // Chest
   'Pectoralis Major (Sternal)',
   'Pectoralis Major (Clavicular)',
+  // Core
+  'Rectus Abdominis',
+  'Obliques',
+  'Hip Flexors',
+  // Forearms
+  'Forearm Flexors',
+  'Forearm Extensors',
 ] as const;
 
 /**
@@ -74,7 +94,10 @@ export type FunctionalGroup =
   | 'Quads'
   | 'Hamstrings'
   | 'Glutes'
-  | 'Calves';
+  | 'Calves'
+  | 'Core'
+  | 'Forearms'
+  | 'Adductors';
 
 /**
  * Array of all FunctionalGroup values for iteration.
@@ -94,6 +117,9 @@ export const FUNCTIONAL_GROUPS: readonly FunctionalGroup[] = [
   'Hamstrings',
   'Glutes',
   'Calves',
+  'Core',
+  'Forearms',
+  'Adductors',
 ] as const;
 
 /**
@@ -105,6 +131,7 @@ export const DEFAULT_SCIENTIFIC_TO_FUNCTIONAL: Record<ScientificMuscle, Function
   'Latissimus Dorsi': 'Lats',
   'Middle Trapezius': 'Traps',
   'Upper Trapezius': 'Traps',
+  'Lower Trapezius': 'Traps',
   'Erector Spinae': 'Lower Back',
   // Shoulders
   'Posterior Deltoid': 'Rear Delts',
@@ -118,12 +145,21 @@ export const DEFAULT_SCIENTIFIC_TO_FUNCTIONAL: Record<ScientificMuscle, Function
   'Quadriceps (Vasti)': 'Quads',
   'Quadriceps (RF)': 'Quads',
   'Gluteus Maximus': 'Glutes',
+  'Gluteus Medius': 'Glutes',
   Hamstrings: 'Hamstrings',
+  Adductors: 'Adductors',
   Gastrocnemius: 'Calves',
   Soleus: 'Calves',
   // Chest
   'Pectoralis Major (Sternal)': 'Chest',
   'Pectoralis Major (Clavicular)': 'Upper Chest',
+  // Core
+  'Rectus Abdominis': 'Core',
+  Obliques: 'Core',
+  'Hip Flexors': 'Core',
+  // Forearms
+  'Forearm Flexors': 'Forearms',
+  'Forearm Extensors': 'Forearms',
 };
 
 /**

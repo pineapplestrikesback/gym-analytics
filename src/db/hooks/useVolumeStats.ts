@@ -24,7 +24,7 @@ import {
 import { normalizeId } from '@core/utils/normalization';
 
 // Load exercise mappings from config
-import exerciseListJson from '../../../config/exercise_list.json';
+import exerciseListJson from '../../../config/exercise_list_complete.json';
 
 /**
  * Volume stats for a single muscle/group

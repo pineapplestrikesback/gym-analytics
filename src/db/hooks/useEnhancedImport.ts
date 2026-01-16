@@ -5,7 +5,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { db, type Workout } from '../schema';
 import { useTrackUnmappedExercise } from './useUnmappedExercises';
-import exerciseListJson from '../../../config/exercise_list.json';
+import exerciseListJson from '../../../config/exercise_list_complete.json';
 
 // Build set of canonical exercise IDs
 function getCanonicalExerciseIds(): Set<string> {

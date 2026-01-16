@@ -9,12 +9,13 @@ import {
 
 describe('taxonomy', () => {
   describe('ScientificMuscle', () => {
-    it('should contain all 22 scientific muscles from exercise_list.json', () => {
+    it('should contain all 26 scientific muscles from exercise_list_complete.json', () => {
       const expectedMuscles: ScientificMuscle[] = [
         // Back
         'Latissimus Dorsi',
         'Middle Trapezius',
         'Upper Trapezius',
+        'Lower Trapezius',
         'Erector Spinae',
         // Shoulders
         'Posterior Deltoid',
@@ -28,12 +29,21 @@ describe('taxonomy', () => {
         'Quadriceps (Vasti)',
         'Quadriceps (RF)',
         'Gluteus Maximus',
+        'Gluteus Medius',
         'Hamstrings',
+        'Adductors',
         'Gastrocnemius',
         'Soleus',
         // Chest
         'Pectoralis Major (Sternal)',
         'Pectoralis Major (Clavicular)',
+        // Core
+        'Rectus Abdominis',
+        'Obliques',
+        'Hip Flexors',
+        // Forearms
+        'Forearm Flexors',
+        'Forearm Extensors',
       ];
 
       expectedMuscles.forEach((muscle) => {
@@ -41,8 +51,8 @@ describe('taxonomy', () => {
       });
     });
 
-    it('should have exactly 18 unique muscles', () => {
-      expect(SCIENTIFIC_MUSCLES).toHaveLength(18);
+    it('should have exactly 26 unique muscles', () => {
+      expect(SCIENTIFIC_MUSCLES).toHaveLength(26);
     });
   });
 
@@ -63,6 +73,9 @@ describe('taxonomy', () => {
         'Hamstrings',
         'Glutes',
         'Calves',
+        'Core',
+        'Forearms',
+        'Adductors',
       ];
 
       expectedGroups.forEach((group) => {
@@ -109,7 +122,24 @@ describe('taxonomy', () => {
       expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Latissimus Dorsi']).toBe('Lats');
       expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Middle Trapezius']).toBe('Traps');
       expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Upper Trapezius']).toBe('Traps');
+      expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Lower Trapezius']).toBe('Traps');
       expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Erector Spinae']).toBe('Lower Back');
+    });
+
+    it('should map core muscles correctly', () => {
+      expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Rectus Abdominis']).toBe('Core');
+      expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Obliques']).toBe('Core');
+      expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Hip Flexors']).toBe('Core');
+    });
+
+    it('should map forearm muscles correctly', () => {
+      expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Forearm Flexors']).toBe('Forearms');
+      expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Forearm Extensors']).toBe('Forearms');
+    });
+
+    it('should map adductor and glute medius muscles correctly', () => {
+      expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Adductors']).toBe('Adductors');
+      expect(DEFAULT_SCIENTIFIC_TO_FUNCTIONAL['Gluteus Medius']).toBe('Glutes');
     });
   });
 });
