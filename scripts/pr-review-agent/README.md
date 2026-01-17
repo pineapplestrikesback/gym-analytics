@@ -118,7 +118,7 @@ For local dev with KV, you can either:
 
 ## Auto PR Review (Standalone Feature)
 
-In addition to the session-resumption system, there's an **automatic PR review bot** that reviews all new PRs without requiring any session registration.
+In addition to the session-resumption system, there's an **automatic PR review bot** that reviews all new PRs using the [Claude PR Reviewer](https://github.com/marketplace/actions/claude-pr-reviewer) marketplace action.
 
 ### Setup (1 minute)
 
@@ -129,25 +129,26 @@ Add one secret to your GitHub repository:
 
 That's it! The workflow at `.github/workflows/auto-pr-review.yml` will:
 - Trigger when PRs are opened or updated
-- Fetch the PR diff
-- Send it to Claude for review
+- Analyze code changes with Claude
 - Post the review as a PR comment
 
 ### Features
 
 - **Automatic**: Reviews every PR automatically (no manual trigger needed)
-- **Smart filtering**: Skips draft PRs and bot PRs (Dependabot, etc.)
-- **Handles large diffs**: Truncates diffs >100KB to stay within context limits
-- **Clear feedback**: Posts structured markdown reviews with summary and specific points
-- **Update-aware**: Re-reviews when new commits are pushed
+- **Interactive**: Mention `@claude` in PR comments for follow-up questions
+- **Model selection**: Choose between Opus, Sonnet, or Haiku
+- **Multi-language**: Reviews can be in any language
+- **Custom prompts**: Add project-specific review instructions
 
 ### Customization
 
 Edit `.github/workflows/auto-pr-review.yml` to:
-- Change the Claude model (default: `claude-sonnet-4-20250514`)
-- Adjust the review prompt/guidelines
-- Add/remove PR event triggers
-- Skip specific authors or labels
+- Change the Claude model (default: `claude-sonnet-4-5-20250929`)
+- Add `custom_prompt` for project-specific guidelines
+- Set `review_language` for non-English reviews
+- Remove `synchronize` trigger to only review on PR creation
+
+See [marketplace docs](https://github.com/marketplace/actions/claude-pr-reviewer) for all options.
 
 ---
 
