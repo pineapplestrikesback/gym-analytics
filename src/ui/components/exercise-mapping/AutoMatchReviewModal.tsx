@@ -100,7 +100,7 @@ export function AutoMatchReviewModal({
     );
   };
 
-  // If editing, show the ExerciseSearchModal
+  // If editing, show the ExerciseSearchModal with values pre-filled from the suggested exercise
   if (editingSuggestion) {
     const unmappedExercise = getUnmappedExerciseForSuggestion(editingSuggestion);
     if (unmappedExercise) {
@@ -108,6 +108,7 @@ export function AutoMatchReviewModal({
         <ExerciseSearchModal
           profileId={profileId}
           unmappedExercise={unmappedExercise}
+          prefillFromExercise={editingSuggestion.suggestedCanonicalName}
           onClose={() => {
             setEditingSuggestion(null);
             onClose(); // Close auto-match modal too
