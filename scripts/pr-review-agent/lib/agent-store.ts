@@ -1,4 +1,10 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+// Initialize Redis client - Upstash auto-reads UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL || '',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+});
 
 export interface AgentSession {
   id: string;
@@ -43,10 +49,10 @@ export async function createSession(data: {
   };
 
   const key = sessionKey(data.prNumber, data.repository);
-  await kv.set(key, session);
+  await redis.set(key, JSON.stringify(session));
 
   // Also add to active sessions list for listing
-  await kv.sadd('pr-sessions:active', key);
+  await redis.sadd('pr-sessions:active', key);
 
   return session;
 }
@@ -59,7 +65,9 @@ export async function getSession(
   repository: string
 ): Promise<AgentSession | null> {
   const key = sessionKey(prNumber, repository);
-  return await kv.get<AgentSession>(key);
+  const data = await redis.get<string>(key);
+  if (!data) return null;
+  return typeof data === 'string' ? JSON.parse(data) : data;
 }
 
 /**
@@ -71,16 +79,16 @@ export async function updateSessionStatus(
   status: AgentSession['status']
 ): Promise<void> {
   const key = sessionKey(prNumber, repository);
-  const session = await kv.get<AgentSession>(key);
+  const session = await getSession(prNumber, repository);
 
   if (session) {
     session.status = status;
     session.updatedAt = new Date().toISOString();
-    await kv.set(key, session);
+    await redis.set(key, JSON.stringify(session));
 
     // Remove from active list if completed
     if (status === 'completed') {
-      await kv.srem('pr-sessions:active', key);
+      await redis.srem('pr-sessions:active', key);
     }
   }
 }
@@ -89,13 +97,16 @@ export async function updateSessionStatus(
  * List all active sessions
  */
 export async function listActiveSessions(): Promise<AgentSession[]> {
-  const keys = await kv.smembers('pr-sessions:active');
+  const keys = await redis.smembers('pr-sessions:active');
   const sessions: AgentSession[] = [];
 
   for (const key of keys) {
-    const session = await kv.get<AgentSession>(key as string);
-    if (session && session.status !== 'completed') {
-      sessions.push(session);
+    const data = await redis.get<string>(key as string);
+    if (data) {
+      const session = typeof data === 'string' ? JSON.parse(data) : data;
+      if (session.status !== 'completed') {
+        sessions.push(session);
+      }
     }
   }
 
@@ -107,6 +118,6 @@ export async function listActiveSessions(): Promise<AgentSession[]> {
  */
 export async function deleteSession(prNumber: number, repository: string): Promise<void> {
   const key = sessionKey(prNumber, repository);
-  await kv.del(key);
-  await kv.srem('pr-sessions:active', key);
+  await redis.del(key);
+  await redis.srem('pr-sessions:active', key);
 }
