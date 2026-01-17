@@ -3,7 +3,7 @@
  * Split anatomical view showing front/back simultaneously with floating muscle cards
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useId } from 'react';
 import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
 import Model from 'react-body-highlighter';
@@ -12,7 +12,6 @@ import type { IMuscleStats, IExerciseData, Muscle } from 'react-body-highlighter
 interface MuscleHeatmapProps {
   profileId: string | null;
   daysBack?: number;
-  view?: 'front' | 'back'; // Kept for backwards compatibility but not used in split view
 }
 
 /**
@@ -107,6 +106,14 @@ const REGION_TO_LIBRARY_MUSCLES: Record<BodyRegion, { front: string[]; back: str
 };
 
 /**
+ * Leader line offset constants (based on card dimensions)
+ */
+const LEADER_LINE_OFFSETS = {
+  mobile: { x: 9, y: 3 },    // Offset for 60px wide cards
+  desktop: { x: 7, y: 2.5 }, // Offset for 80px wide cards
+} as const;
+
+/**
  * Fixed card positions to prevent overlap
  * Positions are percentages relative to container
  */
@@ -171,13 +178,7 @@ function getHeatColor(percentage: number): string {
  * Convert a percentage (0–100) into a discrete frequency level used for body highlighting.
  *
  * @param percentage - A percentage value between 0 and 100
- * @returns An integer frequency level from 0 to 5:
- *  - `0` for exactly 0%
- *  - `1` for values greater than 0 and less than 25
- *  - `2` for values from 25 up to (but not including) 50
- *  - `3` for values from 50 up to (but not including) 75
- *  - `4` for values from 75 up to (but not including) 100
- *  - `5` for exactly 100%
+ * @returns An integer frequency level from 0 to 5
  */
 function getFrequencyLevel(percentage: number): number {
   if (percentage === 0) return 0;
@@ -189,12 +190,13 @@ function getFrequencyLevel(percentage: number): number {
 }
 
 /**
- * Determines whether the current viewport width is less than 768 pixels.
+ * Hook to detect mobile viewport (SSR-safe, mobile-first default)
  *
  * @returns `true` if the viewport width is less than 768 pixels, `false` otherwise.
  */
 function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(false);
+  // Default to true (mobile-first) to prevent hydration mismatch
+  const [isMobile, setIsMobile] = useState(true);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -212,9 +214,6 @@ function useIsMobile(): boolean {
 /**
  * Render a responsive split-view muscle heatmap with interactive muscle cards and region highlighting.
  *
- * Fetches per-muscle volume statistics for a profile, maps them to muscle and region summaries,
- * and renders front/back anatomical visuals with floating cards, leader lines, and visibility controls.
- *
  * @param profileId - Profile identifier to fetch muscle stats for; pass `null` to skip data retrieval
  * @param daysBack - Number of days to aggregate stats over (default: 7)
  * @returns A React element containing the split anterior/posterior muscle heatmap with controls
@@ -224,9 +223,7 @@ export function MuscleHeatmap({
   daysBack = 7,
 }: MuscleHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
-  const [visibleMuscles, setVisibleMuscles] = useState<Set<ScientificMuscle>>(
-    new Set(Object.keys(MUSCLE_ABBREVIATIONS) as ScientificMuscle[])
-  );
+  const [visibleMuscles, setVisibleMuscles] = useState<Set<ScientificMuscle>>(new Set());
   const isMobile = useIsMobile();
 
   // Map stats to muscle-level data
@@ -238,6 +235,13 @@ export function MuscleHeatmap({
       percentage: s.percentage,
     }));
   }, [stats]);
+
+  // Sync visible muscles with actual data from API
+  useEffect(() => {
+    if (muscleStats.length > 0) {
+      setVisibleMuscles(new Set(muscleStats.map((s) => s.muscle)));
+    }
+  }, [muscleStats]);
 
   // Create stats map for quick lookup
   const statsMap = useMemo(() => {
@@ -278,7 +282,7 @@ export function MuscleHeatmap({
 
   // Toggle all muscles
   const toggleAll = (): void => {
-    if (visibleMuscles.size === muscleStats.length) {
+    if (visibleMuscles.size === muscleStats.length && muscleStats.length > 0) {
       // All visible, hide all
       setVisibleMuscles(new Set());
     } else {
@@ -321,7 +325,7 @@ export function MuscleHeatmap({
     );
   }
 
-  const allVisible = visibleMuscles.size === muscleStats.length;
+  const allVisible = visibleMuscles.size === muscleStats.length && muscleStats.length > 0;
   const toggleLabel = allVisible ? 'Hide All' : 'Show All';
 
   return (
@@ -337,56 +341,52 @@ export function MuscleHeatmap({
       </div>
 
       {/* Split Body View with Cards and Leader Lines */}
-      {isMobile ? (
-        <MobileSplitView
-          muscleStats={muscleStats}
-          visibleMuscles={visibleMuscles}
-          regionStats={regionStatsForBody}
-          onMuscleClick={toggleMuscle}
-          onRegionClick={handleRegionClick}
-        />
-      ) : (
-        <DesktopSplitView
-          muscleStats={muscleStats}
-          visibleMuscles={visibleMuscles}
-          regionStats={regionStatsForBody}
-          onMuscleClick={toggleMuscle}
-          onRegionClick={handleRegionClick}
-        />
-      )}
+      <SplitView
+        muscleStats={muscleStats}
+        visibleMuscles={visibleMuscles}
+        regionStats={regionStatsForBody}
+        onMuscleClick={toggleMuscle}
+        onRegionClick={handleRegionClick}
+        desktop={!isMobile}
+      />
     </div>
   );
 }
 
 /**
- * Renders the mobile split-view layout showing anterior and posterior bodies with leader lines and floating muscle cards.
- *
- * Renders an SVG layer of leader lines, the left (front) and right (back) SplitBodyHighlighter components, a central divider, and positioned MuscleCard components for each visible muscle.
+ * Unified Split View Component - shows front/back bodies side-by-side with muscle cards
  *
  * @param muscleStats - Array of per-muscle stats used to render cards and leader lines.
  * @param visibleMuscles - Set of muscles that should be shown as cards and connected by leader lines.
  * @param regionStats - Map of body regions to their aggregated percentage used by the body highlighters.
  * @param onMuscleClick - Callback invoked with the muscle when a MuscleCard is clicked.
  * @param onRegionClick - Callback invoked with the region when a region on the body model is clicked.
- * @returns The mobile split-view React element containing the body diagrams, leader lines, and muscle cards.
+ * @param desktop - When true, render larger desktop sizing and spacing.
+ * @returns The split-view React element containing the body diagrams, leader lines, and muscle cards.
  */
-function MobileSplitView({
+function SplitView({
   muscleStats,
   visibleMuscles,
   regionStats,
   onMuscleClick,
   onRegionClick,
+  desktop = false,
 }: {
   muscleStats: MuscleStats[];
   visibleMuscles: Set<ScientificMuscle>;
   regionStats: Map<BodyRegion, { percentage: number }>;
   onMuscleClick: (muscle: ScientificMuscle) => void;
   onRegionClick: (region: BodyRegion) => void;
+  desktop?: boolean;
 }): React.ReactElement {
+  const offsets = desktop ? LEADER_LINE_OFFSETS.desktop : LEADER_LINE_OFFSETS.mobile;
+  const minHeight = desktop ? 'min-h-[600px]' : 'min-h-[500px]';
+  const containerClass = desktop ? `${minHeight} max-w-4xl mx-auto` : minHeight;
+
   return (
     <div className="relative">
       {/* Split Body Container */}
-      <div className="relative flex justify-center min-h-[500px]">
+      <div className={`relative flex justify-center ${containerClass}`}>
         {/* SVG Container for Leader Lines */}
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none z-10"
@@ -398,13 +398,13 @@ function MobileSplitView({
               const pos = CARD_POSITIONS[stat.muscle];
               if (!pos) return null;
 
-              // Calculate card center position
+              // Calculate card center position using named constants
               const cardLeft = pos.left
                 ? parseFloat(pos.left)
                 : 100 - parseFloat(pos.right || '0');
               const cardTop = parseFloat(pos.top);
-              const cardX = cardLeft + 9; // Approximate card center
-              const cardY = cardTop + 3;
+              const cardX = cardLeft + offsets.x;
+              const cardY = cardTop + offsets.y;
 
               return (
                 <line
@@ -413,8 +413,8 @@ function MobileSplitView({
                   y1={`${cardY}%`}
                   x2={`${pos.anchorX}%`}
                   y2={`${pos.anchorY}%`}
-                  stroke="rgba(255, 255, 255, 0.15)"
-                  strokeWidth="1"
+                  stroke={desktop ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.15)'}
+                  strokeWidth={desktop ? '1.5' : '1'}
                   className="transition-opacity duration-300"
                 />
               );
@@ -462,6 +462,7 @@ function MobileSplitView({
               percentage={stat.percentage}
               position={pos}
               onClick={() => onMuscleClick(stat.muscle)}
+              desktop={desktop}
             />
           );
         })}
@@ -471,123 +472,13 @@ function MobileSplitView({
 }
 
 /**
- * Render the desktop split-view muscle heatmap with leader lines and larger floating muscle cards.
- *
- * @param muscleStats - Array of per-muscle statistics used to render cards and draw leader lines.
- * @param visibleMuscles - Set of muscles that are currently visible and should be rendered.
- * @param regionStats - Map of body regions to their aggregated percentage used to color/highlight the body models.
- * @param onMuscleClick - Callback invoked with a muscle when its card is clicked.
- * @param onRegionClick - Callback invoked with a region when a body region is clicked.
- * @returns The desktop split-view React element containing front and back body models, an SVG layer of leader lines, and positioned muscle cards.
- */
-function DesktopSplitView({
-  muscleStats,
-  visibleMuscles,
-  regionStats,
-  onMuscleClick,
-  onRegionClick,
-}: {
-  muscleStats: MuscleStats[];
-  visibleMuscles: Set<ScientificMuscle>;
-  regionStats: Map<BodyRegion, { percentage: number }>;
-  onMuscleClick: (muscle: ScientificMuscle) => void;
-  onRegionClick: (region: BodyRegion) => void;
-}): React.ReactElement {
-  return (
-    <div className="relative">
-      {/* Split Body Container */}
-      <div className="relative flex justify-center min-h-[600px] max-w-4xl mx-auto">
-        {/* SVG Container for Leader Lines */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none z-10"
-          style={{ overflow: 'visible' }}
-        >
-          {muscleStats
-            .filter((s) => visibleMuscles.has(s.muscle))
-            .map((stat) => {
-              const pos = CARD_POSITIONS[stat.muscle];
-              if (!pos) return null;
-
-              const cardLeft = pos.left
-                ? parseFloat(pos.left)
-                : 100 - parseFloat(pos.right || '0');
-              const cardTop = parseFloat(pos.top);
-              const cardX = cardLeft + 7;
-              const cardY = cardTop + 2.5;
-
-              return (
-                <line
-                  key={stat.muscle}
-                  x1={`${cardX}%`}
-                  y1={`${cardY}%`}
-                  x2={`${pos.anchorX}%`}
-                  y2={`${pos.anchorY}%`}
-                  stroke="rgba(255, 255, 255, 0.2)"
-                  strokeWidth="1.5"
-                  className="transition-opacity duration-300"
-                />
-              );
-            })}
-        </svg>
-
-        {/* Front Half - Left Side */}
-        <div className="w-1/2 overflow-hidden relative">
-          <div className="relative -right-1/2">
-            <SplitBodyHighlighter
-              type="anterior"
-              regionStats={regionStats}
-              onRegionClick={onRegionClick}
-            />
-          </div>
-        </div>
-
-        {/* Back Half - Right Side */}
-        <div className="w-1/2 overflow-hidden relative">
-          <div className="relative -left-1/2">
-            <SplitBodyHighlighter
-              type="posterior"
-              regionStats={regionStats}
-              onRegionClick={onRegionClick}
-            />
-          </div>
-        </div>
-
-        {/* Orange Divider */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-orange-500 z-20" />
-
-        {/* Muscle Cards - Larger for desktop */}
-        {muscleStats.map((stat) => {
-          if (!visibleMuscles.has(stat.muscle)) return null;
-
-          const pos = CARD_POSITIONS[stat.muscle];
-          if (!pos) return null;
-
-          return (
-            <MuscleCard
-              key={stat.muscle}
-              muscle={stat.muscle}
-              volume={stat.volume}
-              goal={stat.goal}
-              percentage={stat.percentage}
-              position={pos}
-              onClick={() => onMuscleClick(stat.muscle)}
-              desktop
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Render a positioned compact muscle card showing an abbreviation, volume/goal and a color-coded border based on `percentage`.
+ * Render a positioned compact muscle card showing an abbreviation, volume/goal and a color-coded border.
  *
  * @param muscle - The scientific muscle identifier to display (used to look up an abbreviation).
  * @param volume - The measured muscle volume to show (displayed with one decimal).
  * @param goal - The target volume to show alongside `volume`.
  * @param percentage - The progress percentage used to determine border and text color.
- * @param position - CSS position values for the card and anchor coordinates used for leader lines: `top`, `left` or `right`, and `anchorX`/`anchorY`.
+ * @param position - CSS position values for the card and anchor coordinates.
  * @param onClick - Click handler invoked when the card is activated.
  * @param desktop - When true, render larger desktop sizing and spacing.
  * @returns A positioned React element that visually represents the muscle card.
@@ -648,9 +539,9 @@ function MuscleCard({
         <div className={`${textColor} font-bold leading-tight`} style={{ fontSize: desktop ? '11px' : '10px' }}>
           {abbreviation}
         </div>
-        {/* Volume / Goal */}
+        {/* Volume / Goal - consistent formatting */}
         <div className="text-white/80 font-medium mt-0.5" style={{ fontSize: desktop ? '10px' : '9px' }}>
-          {volume.toFixed(1)} / {goal}
+          {volume.toFixed(1)} / {goal.toFixed(0)}
         </div>
       </div>
     </button>
@@ -658,12 +549,12 @@ function MuscleCard({
 }
 
 /**
- * Render an anterior or posterior body model with regions colored by their aggregated percentage and interactive region clicks.
+ * Render an anterior or posterior body model with regions colored by their aggregated percentage.
  *
  * @param type - Which model to render: 'anterior' (front) or 'posterior' (back)
- * @param regionStats - Map from BodyRegion to an object with `percentage`; used to derive highlight frequency per region
- * @param onRegionClick - Called with the BodyRegion whose mapped muscle was clicked in the model
- * @returns A React element containing a configured body model with region-based highlighting and click handling
+ * @param regionStats - Map from BodyRegion to an object with `percentage`
+ * @param onRegionClick - Called with the BodyRegion whose mapped muscle was clicked
+ * @returns A React element containing a configured body model with region-based highlighting
  */
 function SplitBodyHighlighter({
   type,
@@ -674,6 +565,9 @@ function SplitBodyHighlighter({
   regionStats: Map<BodyRegion, { percentage: number }>;
   onRegionClick: (region: BodyRegion) => void;
 }): React.ReactElement {
+  // Generate unique ID for scoped styles
+  const scopeId = useId().replace(/:/g, '');
+
   // Create exercise data for the library
   const exerciseData = useMemo((): IExerciseData[] => {
     const data: IExerciseData[] = [];
@@ -725,7 +619,7 @@ function SplitBodyHighlighter({
 
   return (
     <>
-      <div className="flex justify-center">
+      <div className="flex justify-center" data-muscle-heatmap={scopeId}>
         <Model
           type={type}
           data={exerciseData}
@@ -742,22 +636,22 @@ function SplitBodyHighlighter({
         />
       </div>
 
-      {/* Hover styles */}
+      {/* Scoped hover styles using data-attribute */}
       <style>{`
-        .rbh polygon {
+        [data-muscle-heatmap="${scopeId}"] .rbh polygon {
           transition: all 0.2s ease;
           cursor: pointer;
           stroke: rgb(24, 24, 27);
           stroke-width: 0.5px;
         }
 
-        .rbh polygon:hover {
+        [data-muscle-heatmap="${scopeId}"] .rbh polygon:hover {
           filter: brightness(1.4) drop-shadow(0 0 6px currentColor);
           stroke: rgb(245, 158, 11);
           stroke-width: 1.5px;
         }
 
-        .rbh polygon:active {
+        [data-muscle-heatmap="${scopeId}"] .rbh polygon:active {
           filter: brightness(1.2);
         }
       `}</style>
