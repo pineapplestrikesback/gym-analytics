@@ -4,42 +4,7 @@
  */
 
 import { useState } from 'react';
-import type { ScientificMuscle } from '@core/taxonomy';
-
-interface MuscleGroup {
-  name: string;
-  muscles: ScientificMuscle[];
-}
-
-const MUSCLE_GROUPS: MuscleGroup[] = [
-  {
-    name: 'Back',
-    muscles: ['Latissimus Dorsi', 'Middle Trapezius', 'Upper Trapezius', 'Erector Spinae'],
-  },
-  {
-    name: 'Chest',
-    muscles: ['Pectoralis Major (Sternal)', 'Pectoralis Major (Clavicular)'],
-  },
-  {
-    name: 'Shoulders',
-    muscles: ['Anterior Deltoid', 'Lateral Deltoid', 'Posterior Deltoid'],
-  },
-  {
-    name: 'Arms',
-    muscles: ['Biceps Brachii', 'Triceps (Lateral/Medial)', 'Triceps (Long Head)'],
-  },
-  {
-    name: 'Legs',
-    muscles: [
-      'Quadriceps (Vasti)',
-      'Quadriceps (RF)',
-      'Gluteus Maximus',
-      'Hamstrings',
-      'Gastrocnemius',
-      'Soleus',
-    ],
-  },
-];
+import { UI_MUSCLE_GROUPS, type ScientificMuscle } from '@core/taxonomy';
 
 interface MuscleValueEditorProps {
   values: Partial<Record<ScientificMuscle, number>>;
@@ -51,7 +16,7 @@ export function MuscleValueEditor({
   onChange,
 }: MuscleValueEditorProps): React.ReactElement {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(MUSCLE_GROUPS.map((g) => g.name))
+    new Set(UI_MUSCLE_GROUPS.map((g) => g.name))
   );
 
   const toggleGroup = (groupName: string): void => {
@@ -84,7 +49,7 @@ export function MuscleValueEditor({
     });
   };
 
-  const getGroupTotal = (muscles: ScientificMuscle[]): number => {
+  const getGroupTotal = (muscles: readonly ScientificMuscle[]): number => {
     return muscles.reduce((sum, muscle) => sum + (values[muscle] ?? 0), 0);
   };
 
@@ -98,7 +63,7 @@ export function MuscleValueEditor({
         <span className="font-mono text-cyan-400 font-semibold">{totalValue.toFixed(2)}</span>
       </div>
 
-      {MUSCLE_GROUPS.map((group) => {
+      {UI_MUSCLE_GROUPS.map((group) => {
         const isExpanded = expandedGroups.has(group.name);
         const groupTotal = getGroupTotal(group.muscles);
         const hasValues = groupTotal > 0;

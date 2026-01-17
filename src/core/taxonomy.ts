@@ -166,3 +166,77 @@ export const DEFAULT_SCIENTIFIC_TO_FUNCTIONAL: Record<ScientificMuscle, Function
  * Type for exercise muscle mappings (0.0 to 1.0 contribution per muscle).
  */
 export type ExerciseMapping = Partial<Record<ScientificMuscle, number>>;
+
+/**
+ * UI muscle group categories for displaying muscles in forms/editors.
+ * This is the single source of truth for UI components like MuscleValueEditor.
+ */
+export type UIMuscleGroup = 'Back' | 'Chest' | 'Shoulders' | 'Arms' | 'Legs' | 'Core' | 'Forearms';
+
+/**
+ * UI muscle groups with their constituent ScientificMuscles.
+ * Used by MuscleValueEditor, WeeklyGoalEditor, and other UI components.
+ */
+export const UI_MUSCLE_GROUPS: readonly { name: UIMuscleGroup; muscles: readonly ScientificMuscle[] }[] = [
+  {
+    name: 'Back',
+    muscles: [
+      'Latissimus Dorsi',
+      'Upper Trapezius',
+      'Middle Trapezius',
+      'Lower Trapezius',
+      'Erector Spinae',
+    ],
+  },
+  {
+    name: 'Chest',
+    muscles: [
+      'Pectoralis Major (Sternal)',
+      'Pectoralis Major (Clavicular)',
+    ],
+  },
+  {
+    name: 'Shoulders',
+    muscles: [
+      'Anterior Deltoid',
+      'Lateral Deltoid',
+      'Posterior Deltoid',
+    ],
+  },
+  {
+    name: 'Arms',
+    muscles: [
+      'Biceps Brachii',
+      'Triceps (Long Head)',
+      'Triceps (Lateral/Medial)',
+    ],
+  },
+  {
+    name: 'Legs',
+    muscles: [
+      'Quadriceps (Vasti)',
+      'Quadriceps (RF)',
+      'Gluteus Maximus',
+      'Gluteus Medius',
+      'Hamstrings',
+      'Adductors',
+      'Gastrocnemius',
+      'Soleus',
+    ],
+  },
+  {
+    name: 'Core',
+    muscles: [
+      'Rectus Abdominis',
+      'Obliques',
+      'Hip Flexors',
+    ],
+  },
+  {
+    name: 'Forearms',
+    muscles: [
+      'Forearm Flexors',
+      'Forearm Extensors',
+    ],
+  },
+] as const;
