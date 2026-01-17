@@ -85,6 +85,34 @@ export interface ExerciseMapping {
 }
 
 /**
+ * User customization of default exercise muscle values.
+ * Overrides exercises from exercise_list_complete.json.
+ * Stores only user modifications; absence means use default.
+ */
+export interface DefaultExerciseOverride {
+  id: string;
+  profileId: string;
+  exerciseName: string;
+  customMuscleValues: Partial<Record<ScientificMuscle, number>>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * User customization of default exercise name mappings.
+ * Overrides mappings from exercise_name_mappings.json.
+ * Stores only user modifications; absence means use default.
+ */
+export interface DefaultNameMappingOverride {
+  id: string;
+  profileId: string;
+  gymName: string;
+  canonicalName: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
  * Dexie database class for ScientificMuscle
  */
 class ScientificMuscleDatabase extends Dexie {
@@ -92,6 +120,8 @@ class ScientificMuscleDatabase extends Dexie {
   workouts!: Table<Workout, string>;
   unmappedExercises!: Table<UnmappedExercise, string>;
   exerciseMappings!: Table<ExerciseMapping, string>;
+  defaultExerciseOverrides!: Table<DefaultExerciseOverride, string>;
+  defaultNameMappingOverrides!: Table<DefaultNameMappingOverride, string>;
 
   constructor() {
     super('ScientificMuscleDB');
@@ -107,6 +137,15 @@ class ScientificMuscleDatabase extends Dexie {
       workouts: 'id, profileId, date, [profileId+date]',
       unmappedExercises: 'id, profileId, normalizedName, [profileId+normalizedName]',
       exerciseMappings: 'id, profileId, originalPattern, [profileId+originalPattern]',
+    });
+
+    this.version(3).stores({
+      profiles: 'id, name',
+      workouts: 'id, profileId, date, [profileId+date]',
+      unmappedExercises: 'id, profileId, normalizedName, [profileId+normalizedName]',
+      exerciseMappings: 'id, profileId, originalPattern, [profileId+originalPattern]',
+      defaultExerciseOverrides: 'id, profileId, [profileId+exerciseName]',
+      defaultNameMappingOverrides: 'id, profileId, [profileId+gymName]',
     });
   }
 }

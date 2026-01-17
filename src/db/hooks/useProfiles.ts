@@ -117,12 +117,21 @@ export function useDeleteProfile(): {
     mutationFn: async (profileId: string) => {
       await db.transaction(
         'rw',
-        [db.profiles, db.workouts, db.unmappedExercises, db.exerciseMappings],
+        [
+          db.profiles,
+          db.workouts,
+          db.unmappedExercises,
+          db.exerciseMappings,
+          db.defaultExerciseOverrides,
+          db.defaultNameMappingOverrides,
+        ],
         async () => {
           await db.profiles.delete(profileId);
           await db.workouts.where('profileId').equals(profileId).delete();
           await db.unmappedExercises.where('profileId').equals(profileId).delete();
           await db.exerciseMappings.where('profileId').equals(profileId).delete();
+          await db.defaultExerciseOverrides.where('profileId').equals(profileId).delete();
+          await db.defaultNameMappingOverrides.where('profileId').equals(profileId).delete();
         }
       );
     },

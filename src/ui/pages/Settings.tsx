@@ -362,6 +362,26 @@ export function Settings(): React.ReactElement {
           </Link>
         </div>
       </section>
+
+      {/* Default Mappings Section */}
+      <section className="rounded-lg bg-primary-700 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-white">
+              Default Mappings
+            </h3>
+            <p className="mt-1 text-sm text-primary-300">
+              Customize default exercise muscle values, name mappings, and functional groupings.
+            </p>
+          </div>
+          <Link
+            to="/settings/default-mappings"
+            className="rounded bg-cyan-500 px-4 py-2 font-medium text-black transition-colors hover:bg-cyan-400"
+          >
+            Edit Defaults
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
