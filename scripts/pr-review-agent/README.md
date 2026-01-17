@@ -116,6 +116,45 @@ For local dev with KV, you can either:
 - Link to your Vercel project: `npx vercel link`
 - Or use a local `.env` file with KV credentials from Vercel dashboard
 
+## Auto PR Review (Standalone Feature)
+
+In addition to the session-resumption system, there's an **automatic PR review bot** that reviews all new PRs without requiring any session registration.
+
+### Setup (1 minute)
+
+Add one secret to your GitHub repository:
+
+1. Go to **Settings → Secrets and Variables → Actions**
+2. Add secret: `ANTHROPIC_API_KEY` = Your Anthropic API key
+
+That's it! The workflow at `.github/workflows/auto-pr-review.yml` will:
+- Trigger when PRs are opened or updated
+- Fetch the PR diff
+- Send it to Claude for review
+- Post the review as a PR comment
+
+### Features
+
+- **Automatic**: Reviews every PR automatically (no manual trigger needed)
+- **Smart filtering**: Skips draft PRs and bot PRs (Dependabot, etc.)
+- **Handles large diffs**: Truncates diffs >100KB to stay within context limits
+- **Clear feedback**: Posts structured markdown reviews with summary and specific points
+- **Update-aware**: Re-reviews when new commits are pushed
+
+### Customization
+
+Edit `.github/workflows/auto-pr-review.yml` to:
+- Change the Claude model (default: `claude-sonnet-4-20250514`)
+- Adjust the review prompt/guidelines
+- Add/remove PR event triggers
+- Skip specific authors or labels
+
+---
+
+## Agent Session Resumption (Advanced Feature)
+
+The Vercel infrastructure enables a more advanced flow where Claude agents can be **resumed** when reviewers leave feedback.
+
 ## How the GitHub Action Works
 
 The workflow in `.github/workflows/pr-review-dispatch.yml`:

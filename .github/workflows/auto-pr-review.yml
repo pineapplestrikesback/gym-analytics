@@ -1,0 +1,166 @@
+name: Auto PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review-pr:
+    runs-on: ubuntu-latest
+    # Skip bot PRs and draft PRs
+    if: |
+      github.event.pull_request.draft == false &&
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: get-diff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the diff for this PR
+          gh pr diff ${{ github.event.pull_request.number }} > pr_diff.txt
+
+          # Get diff stats
+          DIFF_SIZE=$(wc -c < pr_diff.txt)
+          echo "diff_size=$DIFF_SIZE" >> $GITHUB_OUTPUT
+
+          # Truncate if too large (Claude has context limits)
+          MAX_SIZE=100000
+          if [ "$DIFF_SIZE" -gt "$MAX_SIZE" ]; then
+            echo "Diff too large ($DIFF_SIZE bytes), truncating to $MAX_SIZE bytes"
+            head -c $MAX_SIZE pr_diff.txt > pr_diff_truncated.txt
+            mv pr_diff_truncated.txt pr_diff.txt
+            echo "truncated=true" >> $GITHUB_OUTPUT
+          else
+            echo "truncated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get PR info
+        id: pr-info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get PR title and body
+          gh pr view ${{ github.event.pull_request.number }} --json title,body > pr_info.json
+
+          PR_TITLE=$(jq -r '.title' pr_info.json)
+          PR_BODY=$(jq -r '.body // "No description provided"' pr_info.json)
+
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+
+          # Save body to file (may contain special characters)
+          echo "$PR_BODY" > pr_body.txt
+
+      - name: Review PR with Claude
+        id: claude-review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # Skip if no API key configured
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY not configured. Skipping auto-review."
+            echo "To enable auto PR review, add ANTHROPIC_API_KEY to repository secrets."
+            echo "review_skipped=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Read diff and PR body
+          DIFF_CONTENT=$(cat pr_diff.txt)
+          PR_BODY=$(cat pr_body.txt)
+          PR_TITLE="${{ steps.pr-info.outputs.pr_title }}"
+          TRUNCATED="${{ steps.get-diff.outputs.truncated }}"
+
+          # Build the prompt
+          TRUNCATION_NOTE=""
+          if [ "$TRUNCATED" = "true" ]; then
+            TRUNCATION_NOTE="Note: This diff was truncated due to size. Focus on the visible changes."
+          fi
+
+          # Create the request payload
+          cat > request.json << 'PROMPT_EOF'
+          {
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 4096,
+            "messages": [
+              {
+                "role": "user",
+                "content": "You are a helpful code reviewer. Review this pull request and provide constructive feedback.\n\nGuidelines:\n- Be constructive and specific\n- Focus on: bugs, security issues, performance, code quality, and best practices\n- Praise good patterns you notice\n- Keep the review concise (aim for 3-7 key points)\n- Use bullet points for clarity\n- If the changes look good overall, say so\n- Do NOT nitpick minor style issues unless they impact readability significantly\n\nPR Title: TITLE_PLACEHOLDER\n\nPR Description:\nBODY_PLACEHOLDER\n\nTRUNCATION_PLACEHOLDER\n\nDiff:\n```diff\nDIFF_PLACEHOLDER\n```\n\nProvide your review in markdown format. Start with a brief summary, then list specific feedback points."
+              }
+            ]
+          }
+          PROMPT_EOF
+
+          # Escape and substitute values using jq
+          jq --arg title "$PR_TITLE" \
+             --arg body "$PR_BODY" \
+             --arg truncation "$TRUNCATION_NOTE" \
+             --arg diff "$DIFF_CONTENT" \
+             '.messages[0].content = (.messages[0].content | gsub("TITLE_PLACEHOLDER"; $title) | gsub("BODY_PLACEHOLDER"; $body) | gsub("TRUNCATION_PLACEHOLDER"; $truncation) | gsub("DIFF_PLACEHOLDER"; $diff))' \
+             request.json > request_final.json
+
+          # Call Claude API
+          HTTP_STATUS=$(curl -s -w "%{http_code}" -o response.json \
+            -X POST https://api.anthropic.com/v1/messages \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -d @request_final.json)
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Claude API call failed with status $HTTP_STATUS"
+            cat response.json
+            echo "review_skipped=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extract the review text
+          REVIEW=$(jq -r '.content[0].text' response.json)
+
+          # Save review to file
+          echo "$REVIEW" > review.txt
+          echo "review_skipped=false" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        if: steps.claude-review.outputs.review_skipped != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW=$(cat review.txt)
+          EVENT_TYPE="${{ github.event.action }}"
+
+          # Add header based on event type
+          if [ "$EVENT_TYPE" = "opened" ]; then
+            HEADER="## Automated Code Review"
+          else
+            HEADER="## Automated Code Review (Updated)"
+          fi
+
+          FOOTER="_This review was generated automatically by Claude. It may not catch all issues - human review is still recommended._"
+
+          # Combine into final comment
+          COMMENT="$HEADER
+
+$REVIEW
+
+---
+$FOOTER"
+
+          # Post as a PR comment
+          gh pr comment ${{ github.event.pull_request.number }} --body "$COMMENT"
+
+      - name: Log completion
+        run: |
+          echo "Auto PR review completed for PR #${{ github.event.pull_request.number }}"
+          echo "Event type: ${{ github.event.action }}"
+          echo "Review skipped: ${{ steps.claude-review.outputs.review_skipped }}"
