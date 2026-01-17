@@ -7,17 +7,15 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCurrentProfile } from '../context/ProfileContext';
 import { useUnmappedExercises } from '@db/hooks/useUnmappedExercises';
-import { MuscleVolumeGrid } from '../components/MuscleVolumeGrid';
 import { MuscleHeatmap } from '../components/MuscleHeatmap';
 import { TotalVolumeCard } from '../components/TotalVolumeCard';
 import { WeeklyActivityChart } from '../components/WeeklyActivityChart';
-import { Grid3x3, User } from 'lucide-react';
 
 export function Dashboard(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
   const { count: unmappedCount } = useUnmappedExercises(currentProfile?.id ?? null);
   const [dismissedAlert, setDismissedAlert] = useState(false);
-  const [viewMode, setViewMode] = useState<'heatmap' | 'grid'>('heatmap');
+  const [bodyView, setBodyView] = useState<'front' | 'back'>('front');
 
   if (isLoading) {
     return (
@@ -85,38 +83,32 @@ export function Dashboard(): React.ReactElement {
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-white">This Week</h3>
 
-          {/* View Mode Toggle */}
+          {/* Front/Back View Toggle */}
           <div className="inline-flex rounded-lg bg-primary-800 p-1">
             <button
-              onClick={() => setViewMode('heatmap')}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
-                viewMode === 'heatmap'
+              onClick={() => setBodyView('front')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                bodyView === 'front'
                   ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/30'
                   : 'text-primary-300 hover:text-white'
               }`}
             >
-              <User size={14} />
-              <span className="hidden sm:inline">Heat Map</span>
+              Front
             </button>
             <button
-              onClick={() => setViewMode('grid')}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
-                viewMode === 'grid'
+              onClick={() => setBodyView('back')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                bodyView === 'back'
                   ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/30'
                   : 'text-primary-300 hover:text-white'
               }`}
             >
-              <Grid3x3 size={14} />
-              <span className="hidden sm:inline">Grid</span>
+              Back
             </button>
           </div>
         </div>
 
-        {viewMode === 'heatmap' ? (
-          <MuscleHeatmap profileId={currentProfile.id} />
-        ) : (
-          <MuscleVolumeGrid />
-        )}
+        <MuscleHeatmap profileId={currentProfile.id} view={bodyView} />
       </div>
 
       {/* Total Volume */}
