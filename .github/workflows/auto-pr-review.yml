@@ -31,9 +31,8 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          model: claude-sonnet-4-5-20250929
-          custom_instructions: |
-            You are reviewing a pull request. Focus on:
+          prompt: |
+            Review this pull request. Focus on:
             - Code quality and best practices
             - Potential bugs or security issues
             - Test coverage
