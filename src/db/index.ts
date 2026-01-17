@@ -15,6 +15,8 @@ export {
   type WorkoutSet,
   type UnmappedExercise,
   type ExerciseMapping,
+  type DefaultExerciseOverride,
+  type DefaultNameMappingOverride,
 } from './schema';
 
 // Hooks
@@ -63,3 +65,37 @@ export {
   useDeleteExerciseMapping,
   useGetMappingByPattern,
 } from './hooks/useExerciseMappings';
+
+export {
+  useDefaultExerciseOverrides,
+  useDefaultExerciseOverride,
+  useUpsertDefaultExerciseOverride,
+  useDeleteDefaultExerciseOverride,
+  useCustomizedExerciseNames,
+} from './hooks/useDefaultExerciseOverrides';
+
+export {
+  useDefaultNameMappingOverrides,
+  useDefaultNameMappingOverride,
+  useUpsertDefaultNameMappingOverride,
+  useDeleteDefaultNameMappingOverride,
+  useCustomizedGymNames,
+  useNameMappingOverridesMap,
+} from './hooks/useDefaultNameMappingOverrides';
+
+// Mapping resolver utilities
+export {
+  getDefaultExerciseMuscleValues,
+  getEffectiveExerciseMuscleValues,
+  getDefaultCanonicalName,
+  getEffectiveCanonicalName,
+  getDefaultFunctionalGroup,
+  getEffectiveFunctionalGroup,
+  getAllDefaultExerciseNames,
+  getAllDefaultGymNameMappings,
+  isDefaultExercise,
+  hasDefaultGymNameMapping,
+  batchResolveExerciseMuscleValues,
+  batchResolveGymNameMappings,
+  type ExerciseMuscleMapping,
+} from './utils/mapping-resolver';

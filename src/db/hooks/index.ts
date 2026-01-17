@@ -7,3 +7,5 @@ export * from './useWorkouts';
 export * from './useVolumeStats';
 export * from './useHevySync';
 export * from './useDailyStats';
+export * from './useDefaultExerciseOverrides';
+export * from './useDefaultNameMappingOverrides';

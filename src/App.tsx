@@ -6,6 +6,7 @@ import { Dashboard } from '@ui/pages/Dashboard';
 import { Settings } from '@ui/pages/Settings';
 import { Debug } from '@ui/pages/Debug';
 import { ExerciseMappingPage } from '@ui/pages/ExerciseMappingPage';
+import { DefaultMappingsEditor } from '@ui/pages/DefaultMappingsEditor';
 
 function App(): React.ReactElement {
   return (
@@ -16,6 +17,7 @@ function App(): React.ReactElement {
             <Route path="/" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/settings/exercise-mappings" element={<ExerciseMappingPage />} />
+            <Route path="/settings/default-mappings" element={<DefaultMappingsEditor />} />
             <Route path="/debug" element={<Debug />} />
           </Route>
         </Routes>
