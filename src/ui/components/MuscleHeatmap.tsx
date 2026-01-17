@@ -153,7 +153,10 @@ interface MuscleStats {
 }
 
 /**
- * Calculate heat map color based on percentage
+ * Map a percentage (0–100) to a heatmap color.
+ *
+ * @param percentage - Percentage value between 0 and 100 used to select the color
+ * @returns A CSS `rgb(...)` color string corresponding to the input percentage
  */
 function getHeatColor(percentage: number): string {
   if (percentage === 0) return 'rgb(63, 63, 70)'; // primary-500 (dim gray)
@@ -165,7 +168,16 @@ function getHeatColor(percentage: number): string {
 }
 
 /**
- * Map percentage to frequency level (0-5) for body highlighting
+ * Convert a percentage (0–100) into a discrete frequency level used for body highlighting.
+ *
+ * @param percentage - A percentage value between 0 and 100
+ * @returns An integer frequency level from 0 to 5:
+ *  - `0` for exactly 0%
+ *  - `1` for values greater than 0 and less than 25
+ *  - `2` for values from 25 up to (but not including) 50
+ *  - `3` for values from 50 up to (but not including) 75
+ *  - `4` for values from 75 up to (but not including) 100
+ *  - `5` for exactly 100%
  */
 function getFrequencyLevel(percentage: number): number {
   if (percentage === 0) return 0;
@@ -177,7 +189,9 @@ function getFrequencyLevel(percentage: number): number {
 }
 
 /**
- * Hook to detect mobile viewport
+ * Determines whether the current viewport width is less than 768 pixels.
+ *
+ * @returns `true` if the viewport width is less than 768 pixels, `false` otherwise.
  */
 function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState(false);
@@ -195,6 +209,16 @@ function useIsMobile(): boolean {
   return isMobile;
 }
 
+/**
+ * Render a responsive split-view muscle heatmap with interactive muscle cards and region highlighting.
+ *
+ * Fetches per-muscle volume statistics for a profile, maps them to muscle and region summaries,
+ * and renders front/back anatomical visuals with floating cards, leader lines, and visibility controls.
+ *
+ * @param profileId - Profile identifier to fetch muscle stats for; pass `null` to skip data retrieval
+ * @param daysBack - Number of days to aggregate stats over (default: 7)
+ * @returns A React element containing the split anterior/posterior muscle heatmap with controls
+ */
 export function MuscleHeatmap({
   profileId,
   daysBack = 7,
@@ -335,8 +359,16 @@ export function MuscleHeatmap({
 }
 
 /**
- * Mobile Split View Component
- * Shows front/back bodies side-by-side with compact muscle cards
+ * Renders the mobile split-view layout showing anterior and posterior bodies with leader lines and floating muscle cards.
+ *
+ * Renders an SVG layer of leader lines, the left (front) and right (back) SplitBodyHighlighter components, a central divider, and positioned MuscleCard components for each visible muscle.
+ *
+ * @param muscleStats - Array of per-muscle stats used to render cards and leader lines.
+ * @param visibleMuscles - Set of muscles that should be shown as cards and connected by leader lines.
+ * @param regionStats - Map of body regions to their aggregated percentage used by the body highlighters.
+ * @param onMuscleClick - Callback invoked with the muscle when a MuscleCard is clicked.
+ * @param onRegionClick - Callback invoked with the region when a region on the body model is clicked.
+ * @returns The mobile split-view React element containing the body diagrams, leader lines, and muscle cards.
  */
 function MobileSplitView({
   muscleStats,
@@ -439,7 +471,14 @@ function MobileSplitView({
 }
 
 /**
- * Desktop Split View - Same layout but larger
+ * Render the desktop split-view muscle heatmap with leader lines and larger floating muscle cards.
+ *
+ * @param muscleStats - Array of per-muscle statistics used to render cards and draw leader lines.
+ * @param visibleMuscles - Set of muscles that are currently visible and should be rendered.
+ * @param regionStats - Map of body regions to their aggregated percentage used to color/highlight the body models.
+ * @param onMuscleClick - Callback invoked with a muscle when its card is clicked.
+ * @param onRegionClick - Callback invoked with a region when a body region is clicked.
+ * @returns The desktop split-view React element containing front and back body models, an SVG layer of leader lines, and positioned muscle cards.
  */
 function DesktopSplitView({
   muscleStats,
@@ -542,8 +581,16 @@ function DesktopSplitView({
 }
 
 /**
- * Muscle Card Component
- * Compact card showing muscle name, volume/goal, and color-coded progress
+ * Render a positioned compact muscle card showing an abbreviation, volume/goal and a color-coded border based on `percentage`.
+ *
+ * @param muscle - The scientific muscle identifier to display (used to look up an abbreviation).
+ * @param volume - The measured muscle volume to show (displayed with one decimal).
+ * @param goal - The target volume to show alongside `volume`.
+ * @param percentage - The progress percentage used to determine border and text color.
+ * @param position - CSS position values for the card and anchor coordinates used for leader lines: `top`, `left` or `right`, and `anchorX`/`anchorY`.
+ * @param onClick - Click handler invoked when the card is activated.
+ * @param desktop - When true, render larger desktop sizing and spacing.
+ * @returns A positioned React element that visually represents the muscle card.
  */
 function MuscleCard({
   muscle,
@@ -611,8 +658,12 @@ function MuscleCard({
 }
 
 /**
- * Split Body Highlighter Component
- * Renders a single Model component with region-based coloring
+ * Render an anterior or posterior body model with regions colored by their aggregated percentage and interactive region clicks.
+ *
+ * @param type - Which model to render: 'anterior' (front) or 'posterior' (back)
+ * @param regionStats - Map from BodyRegion to an object with `percentage`; used to derive highlight frequency per region
+ * @param onRegionClick - Called with the BodyRegion whose mapped muscle was clicked in the model
+ * @returns A React element containing a configured body model with region-based highlighting and click handling
  */
 function SplitBodyHighlighter({
   type,
