@@ -289,18 +289,41 @@ export function MuscleHeatmap({
         </div>
       </div>
 
-      {/* Body Diagram with Floating Cards Container */}
-      <div className="relative min-h-[400px] md:min-h-[500px]">
-        <BodyHighlighter
-          view={view}
-          regionStats={regionStatsMap}
-          onRegionClick={handleRegionClick}
-          getHeatColor={getHeatColor}
-        />
+      {/* Show All Mode - Desktop: Positioned cards around body, Mobile: Grid below */}
+      {showAllLabels ? (
+        isMobile ? (
+          <>
+            <div className="relative min-h-[400px]">
+              <BodyHighlighter
+                view={view}
+                regionStats={regionStatsMap}
+                onRegionClick={handleRegionClick}
+                getHeatColor={getHeatColor}
+              />
+            </div>
+            <AllMusclesList regionStats={regionStats} getHeatColor={getHeatColor} />
+          </>
+        ) : (
+          <DesktopShowAllLayout
+            view={view}
+            regionStats={regionStats}
+            regionStatsMap={regionStatsMap}
+            onRegionClick={handleRegionClick}
+            getHeatColor={getHeatColor}
+          />
+        )
+      ) : (
+        /* Tap Muscles Mode - Body with floating tooltips on tap */
+        <div className="relative min-h-[400px] md:min-h-[500px]">
+          <BodyHighlighter
+            view={view}
+            regionStats={regionStatsMap}
+            onRegionClick={handleRegionClick}
+            getHeatColor={getHeatColor}
+          />
 
-        {/* Floating Tooltip Cards - Only show when NOT in "Show All" mode */}
-        {!showAllLabels &&
-          regionStats.map((region) =>
+          {/* Floating Tooltip Cards */}
+          {regionStats.map((region) =>
             visibleRegions.has(region.region) ? (
               isMobile ? (
                 <MobileMuscleTooltip
@@ -320,10 +343,8 @@ export function MuscleHeatmap({
               )
             ) : null
           )}
-      </div>
-
-      {/* Show All Mode - Compact list of all muscles */}
-      {showAllLabels && <AllMusclesList regionStats={regionStats} getHeatColor={getHeatColor} />}
+        </div>
+      )}
 
       {/* Heat Map Legend */}
       <div className="mt-6 flex items-center justify-center gap-2 text-xs">
@@ -715,6 +736,143 @@ function AllMusclesList({
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Desktop Show All Layout Component
+ * Displays body in center with positioned region cards on left and right sides
+ */
+function DesktopShowAllLayout({
+  view,
+  regionStats,
+  regionStatsMap,
+  onRegionClick,
+  getHeatColor,
+}: {
+  view: 'front' | 'back';
+  regionStats: RegionStats[];
+  regionStatsMap: Map<BodyRegion, RegionStats>;
+  onRegionClick: (region: RegionStats) => void;
+  getHeatColor: (percentage: number) => string;
+}): React.ReactElement {
+  // Define which regions appear on which side for each view
+  const FRONT_LEFT_REGIONS: BodyRegion[] = ['quads', 'adductors'];
+  const FRONT_RIGHT_REGIONS: BodyRegion[] = [
+    'shoulders',
+    'chest',
+    'biceps',
+    'abs',
+    'forearms',
+    'obliques',
+  ];
+
+  const BACK_LEFT_REGIONS: BodyRegion[] = ['upperBack', 'lowerBack', 'triceps', 'hamstrings'];
+  const BACK_RIGHT_REGIONS: BodyRegion[] = ['glutes', 'calves'];
+
+  const leftRegions = view === 'front' ? FRONT_LEFT_REGIONS : BACK_LEFT_REGIONS;
+  const rightRegions = view === 'front' ? FRONT_RIGHT_REGIONS : BACK_RIGHT_REGIONS;
+
+  // Filter to only regions with data
+  const leftCards = regionStats.filter((r) => leftRegions.includes(r.region));
+  const rightCards = regionStats.filter((r) => rightRegions.includes(r.region));
+
+  // Suppress unused parameter warnings
+  void onRegionClick;
+
+  return (
+    <div className="relative flex items-start justify-center gap-4 min-h-[700px]">
+      {/* Left Column - Region Cards */}
+      <div className="flex flex-col gap-3 w-[240px] pt-8">
+        {leftCards.map((region) => (
+          <DesktopRegionCard key={region.region} region={region} side="left" />
+        ))}
+      </div>
+
+      {/* Center - Body Diagram */}
+      <div className="flex-shrink-0 w-[300px]">
+        <BodyHighlighter
+          view={view}
+          regionStats={regionStatsMap}
+          onRegionClick={() => {}}
+          getHeatColor={getHeatColor}
+        />
+      </div>
+
+      {/* Right Column - Region Cards */}
+      <div className="flex flex-col gap-3 w-[240px] pt-8">
+        {rightCards.map((region) => (
+          <DesktopRegionCard key={region.region} region={region} side="right" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Desktop Region Card Component
+ * Larger card showing region stats with individual muscles
+ */
+function DesktopRegionCard({
+  region,
+  side,
+}: {
+  region: RegionStats;
+  side: 'left' | 'right';
+}): React.ReactElement {
+  // Suppress unused warning
+  void side;
+
+  return (
+    <div className="bg-zinc-900/90 backdrop-blur-sm rounded-lg border border-zinc-700/50 shadow-xl overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-zinc-800">
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="text-sm font-bold text-white">{region.name}</h4>
+          <span
+            className={`px-2 py-0.5 rounded text-xs font-bold ${
+              region.percentage >= 100
+                ? 'bg-cyan-500/20 text-cyan-400'
+                : 'bg-orange-500/20 text-orange-400'
+            }`}
+          >
+            {region.percentage.toFixed(0)}%
+          </span>
+        </div>
+        <p className="text-xs text-zinc-400 mt-1">
+          <span className="font-semibold text-orange-400">{region.totalVolume.toFixed(1)}</span>
+          <span className="mx-1">/</span>
+          <span>{region.totalGoal} sets</span>
+        </p>
+        {/* Progress bar */}
+        <div className="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              region.percentage >= 100
+                ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
+                : 'bg-gradient-to-r from-orange-500 to-orange-400'
+            }`}
+            style={{ width: `${Math.min(region.percentage, 100)}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Muscle List */}
+      <div className="px-4 py-2 space-y-1.5">
+        {region.muscles.map((muscle) => (
+          <div key={muscle.name} className="flex items-center justify-between gap-2">
+            <span className="text-xs text-zinc-300 truncate flex-1">{muscle.name}</span>
+            <span
+              className={`text-xs font-bold tabular-nums ${
+                muscle.percentage >= 100 ? 'text-cyan-400' : 'text-orange-400'
+              }`}
+            >
+              {muscle.volume.toFixed(1)}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
