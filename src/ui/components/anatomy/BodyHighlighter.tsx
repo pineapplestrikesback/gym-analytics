@@ -3,7 +3,7 @@
  * Wrapper around react-body-highlighter that maps our body regions to library muscle slugs
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect, useCallback } from 'react';
 import Model from 'react-body-highlighter';
 import type { IExerciseData, IMuscleStats } from 'react-body-highlighter';
 
@@ -41,6 +41,7 @@ interface BodyHighlighterProps {
   view: 'front' | 'back';
   regionStats: Map<BodyRegion, RegionStats>;
   onRegionClick: (region: RegionStats) => void;
+  onRegionHover?: (region: RegionStats | null) => void;
   getHeatColor: (percentage: number) => string;
 }
 
@@ -124,8 +125,11 @@ export function BodyHighlighter({
   view,
   regionStats,
   onRegionClick,
+  onRegionHover,
   getHeatColor,
 }: BodyHighlighterProps): React.ReactElement {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Create exercise data for the library
   const exerciseData = useMemo(() => {
     const data: IExerciseData[] = [];
@@ -181,9 +185,59 @@ export function BodyHighlighter({
     }
   };
 
+  // Map muscle slug back to region stats
+  const findRegionByMuscle = useCallback((muscleSlug: string): RegionStats | null => {
+    const viewKey = view === 'front' ? 'front' : 'back';
+
+    for (const [region, stats] of regionStats) {
+      const muscles = REGION_TO_MUSCLES[region][viewKey];
+      if (muscles.includes(muscleSlug)) {
+        return stats;
+      }
+    }
+    return null;
+  }, [view, regionStats]);
+
+  // Attach hover event listeners via DOM since library doesn't support hover props
+  useEffect(() => {
+    if (!onRegionHover || !containerRef.current) return;
+
+    const container = containerRef.current;
+
+    // Muscle slug mapping from polygon fill colors or data attributes
+    // The library uses polygons, we need to identify them by their position/content
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (target.tagName.toLowerCase() !== 'polygon') return;
+
+      // The library adds 'id' attributes to polygons with muscle names
+      const polygonId = target.getAttribute('id');
+      if (polygonId) {
+        const region = findRegionByMuscle(polygonId);
+        if (region) {
+          onRegionHover(region);
+        }
+      }
+    };
+
+    const handleMouseOut = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (target.tagName.toLowerCase() !== 'polygon') return;
+      onRegionHover(null);
+    };
+
+    container.addEventListener('mouseover', handleMouseOver);
+    container.addEventListener('mouseout', handleMouseOut);
+
+    return () => {
+      container.removeEventListener('mouseover', handleMouseOver);
+      container.removeEventListener('mouseout', handleMouseOut);
+    };
+  }, [onRegionHover, findRegionByMuscle]);
+
   return (
     <>
-      <div className="flex justify-center">
+      <div ref={containerRef} className="flex justify-center">
         <Model
           type={view === 'front' ? 'anterior' : 'posterior'}
           data={exerciseData}
