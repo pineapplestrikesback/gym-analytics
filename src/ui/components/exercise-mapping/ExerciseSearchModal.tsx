@@ -46,9 +46,24 @@ export function ExerciseSearchModal({
   editingMapping = null,
   prefillFromExercise = null,
 }: ExerciseSearchModalProps): React.ReactElement {
-  // Get initial muscle values if prefilling from an exercise
+  // Get canonical exercise name from ID (for display when editing)
+  const getCanonicalNameFromId = (id: string): string | null => {
+    const exercises = getAllCanonicalExercises();
+    const found = exercises.find((ex) => ex.id === id);
+    return found?.name ?? null;
+  };
+
+  // Get initial muscle values if prefilling or editing
   const getInitialMuscleValues = (): Partial<Record<ScientificMuscle, number>> => {
     if (editingMapping?.customMuscleValues) return editingMapping.customMuscleValues;
+    if (editingMapping?.canonicalExerciseId) {
+      // Load values from the canonical exercise when editing a canonical mapping
+      const canonicalName = getCanonicalNameFromId(editingMapping.canonicalExerciseId);
+      if (canonicalName) {
+        const values = getCanonicalMuscleValues(canonicalName);
+        if (values) return values;
+      }
+    }
     if (prefillFromExercise) {
       const values = getCanonicalMuscleValues(prefillFromExercise);
       if (values) return values;
@@ -56,11 +71,20 @@ export function ExerciseSearchModal({
     return {};
   };
 
+  // Get the exercise name to show as "copied from"
+  const getInitialCopiedFrom = (): string | null => {
+    if (prefillFromExercise) return prefillFromExercise;
+    if (editingMapping?.canonicalExerciseId) {
+      return getCanonicalNameFromId(editingMapping.canonicalExerciseId);
+    }
+    return null;
+  };
+
   // Determine initial tab based on editing mode or prefill
+  // When editing any existing mapping, always go to scratch tab so user can see/modify values
   const getInitialTab = (): TabType => {
     if (prefillFromExercise) return 'scratch';
-    if (editingMapping?.customMuscleValues) return 'scratch';
-    if (editingMapping?.canonicalExerciseId) return 'search';
+    if (editingMapping) return 'scratch'; // Always scratch when editing existing mappings
     return 'search';
   };
 
@@ -74,7 +98,7 @@ export function ExerciseSearchModal({
     getInitialMuscleValues
   );
   const [copiedFromExercise, setCopiedFromExercise] = useState<string | null>(
-    prefillFromExercise ?? null
+    getInitialCopiedFrom
   );
 
   const { createMapping, isCreating } = useCreateExerciseMapping();

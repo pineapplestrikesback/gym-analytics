@@ -110,8 +110,12 @@ export function AutoMatchReviewModal({
           unmappedExercise={unmappedExercise}
           prefillFromExercise={editingSuggestion.suggestedCanonicalName}
           onClose={() => {
+            // Remove this suggestion from the list (it's been handled - either mapped or skipped)
+            setRemainingSuggestions((prev) =>
+              prev.filter((s) => s.unmappedNormalizedName !== editingSuggestion.unmappedNormalizedName)
+            );
             setEditingSuggestion(null);
-            onClose(); // Close auto-match modal too
+            // Don't close the auto-match modal - user may want to continue reviewing
           }}
         />
       );
