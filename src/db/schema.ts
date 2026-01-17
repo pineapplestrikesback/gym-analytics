@@ -17,6 +17,11 @@ export const DEFAULT_MUSCLE_GOAL = 20;
 export const DEFAULT_TOTAL_GOAL = 150;
 
 /**
+ * User gender for anatomical diagrams
+ */
+export type Gender = 'male' | 'female' | 'other';
+
+/**
  * Workout set stored in the database
  */
 export interface WorkoutSet {
@@ -45,6 +50,7 @@ export interface Workout {
 export interface Profile {
   id: string;
   name: string;
+  gender: Gender;
   hevyApiKey?: string;
   lastSyncTimestamp?: number;
   goals: Partial<Record<ScientificMuscle, number>>;
@@ -120,10 +126,11 @@ export function generateId(): string {
 /**
  * Create a new profile with default values
  */
-export function createDefaultProfile(name: string): Profile {
+export function createDefaultProfile(name: string, gender: Gender): Profile {
   return {
     id: generateId(),
     name,
+    gender,
     goals: {},
     totalGoal: DEFAULT_TOTAL_GOAL,
     muscleGroupCustomization: {},

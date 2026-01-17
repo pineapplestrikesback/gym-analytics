@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useCurrentProfile } from '../context/ProfileContext';
 import { useCreateProfile } from '@db/hooks/useProfiles';
 import { useHevySync } from '@db/hooks/useHevySync';
+import type { Gender } from '@db/schema';
 
 export function ProfileSwitcher(): React.ReactElement {
   const { currentProfile, setCurrentProfileId, profiles, isLoading } = useCurrentProfile();
@@ -15,6 +16,7 @@ export function ProfileSwitcher(): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
+  const [newProfileGender, setNewProfileGender] = useState<Gender>('male');
 
   const handleSync = (): void => {
     if (currentProfile) {
@@ -30,9 +32,10 @@ export function ProfileSwitcher(): React.ReactElement {
   const handleCreateProfile = async (): Promise<void> => {
     if (!newProfileName.trim()) return;
 
-    const profile = await createProfile(newProfileName.trim());
+    const profile = await createProfile(newProfileName.trim(), newProfileGender);
     setCurrentProfileId(profile.id);
     setNewProfileName('');
+    setNewProfileGender('male');
     setIsCreatingNew(false);
     setIsOpen(false);
   };
@@ -43,6 +46,7 @@ export function ProfileSwitcher(): React.ReactElement {
     } else if (e.key === 'Escape') {
       setIsCreatingNew(false);
       setNewProfileName('');
+      setNewProfileGender('male');
     }
   };
 
@@ -131,7 +135,40 @@ export function ProfileSwitcher(): React.ReactElement {
                 autoFocus
                 disabled={isCreating}
               />
-              <div className="mt-2 flex gap-2">
+
+              {/* Gender Selection */}
+              <div className="mt-3 space-y-1.5">
+                <label className="text-xs font-medium uppercase tracking-wider text-primary-200">
+                  Gender
+                </label>
+                <div className="flex gap-2">
+                  {(['male', 'female', 'other'] as const).map((gender) => (
+                    <label
+                      key={gender}
+                      className={`flex-1 cursor-pointer rounded border transition-all ${
+                        newProfileGender === gender
+                          ? 'border-accent-blue bg-accent-blue/20 text-white shadow-sm shadow-accent-blue/50'
+                          : 'border-primary-500 bg-primary-800/50 text-primary-200 hover:border-primary-400 hover:text-white'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="gender"
+                        value={gender}
+                        checked={newProfileGender === gender}
+                        onChange={(e) => setNewProfileGender(e.target.value as Gender)}
+                        className="sr-only"
+                        disabled={isCreating}
+                      />
+                      <span className="block py-1.5 text-center text-xs font-medium capitalize">
+                        {gender}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-3 flex gap-2">
                 <button
                   onClick={() => void handleCreateProfile()}
                   disabled={!newProfileName.trim() || isCreating}
@@ -143,6 +180,7 @@ export function ProfileSwitcher(): React.ReactElement {
                   onClick={() => {
                     setIsCreatingNew(false);
                     setNewProfileName('');
+                    setNewProfileGender('male');
                   }}
                   className="rounded px-3 py-1 text-sm text-primary-200 transition-colors hover:text-white"
                 >
@@ -177,6 +215,7 @@ export function ProfileSwitcher(): React.ReactElement {
               setIsOpen(false);
               setIsCreatingNew(false);
               setNewProfileName('');
+              setNewProfileGender('male');
             }}
           />
         )}

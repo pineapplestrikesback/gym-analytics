@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { db, createDefaultProfile, type Profile } from '../schema';
+import { db, createDefaultProfile, type Profile, type Gender } from '../schema';
 
 const PROFILES_KEY = ['profiles'];
 
@@ -57,14 +57,14 @@ export function useProfile(profileId: string | null): {
  * Create a new profile
  */
 export function useCreateProfile(): {
-  createProfile: (name: string) => Promise<Profile>;
+  createProfile: (name: string, gender: Gender) => Promise<Profile>;
   isCreating: boolean;
 } {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (name: string) => {
-      const profile = createDefaultProfile(name);
+    mutationFn: async ({ name, gender }: { name: string; gender: Gender }) => {
+      const profile = createDefaultProfile(name, gender);
       await db.profiles.add(profile);
       return profile;
     },
@@ -74,7 +74,7 @@ export function useCreateProfile(): {
   });
 
   return {
-    createProfile: mutation.mutateAsync,
+    createProfile: (name: string, gender: Gender) => mutation.mutateAsync({ name, gender }),
     isCreating: mutation.isPending,
   };
 }
