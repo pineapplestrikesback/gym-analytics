@@ -5,12 +5,9 @@
 
 import { useMemo, useState } from 'react';
 import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
-import { useProfile } from '@db/hooks/useProfiles';
 import type { VolumeStatItem } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
-import type { Gender } from '@db/index';
-import { MaleAnatomySVG } from './anatomy/MaleAnatomySVG';
-import { FemaleAnatomySVG } from './anatomy/FemaleAnatomySVG';
+import { BodyHighlighter } from './anatomy/BodyHighlighter';
 import { X } from 'lucide-react';
 
 interface MuscleHeatmapProps {
@@ -98,18 +95,8 @@ function getHeatColor(percentage: number): string {
   return 'rgb(6, 182, 212)'; // bright cyan (goal met/exceeded)
 }
 
-/**
- * Get glow intensity for region based on percentage
- */
-function getGlowFilter(percentage: number): string {
-  if (percentage === 0) return 'none';
-  const intensity = Math.min(percentage / 100, 1.5);
-  return `drop-shadow(0 0 ${4 + intensity * 8}px ${getHeatColor(percentage)})`;
-}
-
 export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
-  const { profile } = useProfile(profileId);
   const [selectedRegion, setSelectedRegion] = useState<RegionStats | null>(null);
   const [view, setView] = useState<'front' | 'back'>('front');
 
@@ -169,10 +156,6 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
     );
   }
 
-  // Get gender from profile (default to male if not set)
-  const gender: Gender = profile?.gender ?? 'male';
-  const AnatomyComponent = gender === 'female' ? FemaleAnatomySVG : MaleAnatomySVG;
-
   return (
     <div className="relative">
       {/* View Toggle */}
@@ -202,15 +185,12 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
       </div>
 
       {/* Body Diagram */}
-      <div className="flex justify-center">
-        <AnatomyComponent
-          view={view}
-          regionStats={regionStatsMap}
-          onRegionClick={handleRegionClick}
-          getHeatColor={getHeatColor}
-          getGlowFilter={getGlowFilter}
-        />
-      </div>
+      <BodyHighlighter
+        view={view}
+        regionStats={regionStatsMap}
+        onRegionClick={handleRegionClick}
+        getHeatColor={getHeatColor}
+      />
 
       {/* Heat Map Legend */}
       <div className="mt-8 flex items-center justify-center gap-2 text-xs">

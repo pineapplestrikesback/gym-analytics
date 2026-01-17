@@ -33,6 +33,7 @@
     "lucide-react": "^0.562.0",
     "postcss": "^8.5.6",
     "react": "^19.2.3",
+    "react-body-highlighter": "^2.0.5",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.12.0",
     "recharts": "^3.6.0",
