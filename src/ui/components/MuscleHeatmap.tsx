@@ -1,20 +1,19 @@
 /**
- * MuscleHeatmap Component
- * Interactive anatomical body diagram showing muscle volume as a heat map
- * with floating tooltip cards
+ * MuscleHeatmap Component - Mobile Redesign
+ * Split anatomical view showing front/back simultaneously with floating muscle cards
  */
 
 import { useMemo, useState, useEffect } from 'react';
 import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
 import type { VolumeStatItem } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
-import { BodyHighlighter } from './anatomy/BodyHighlighter';
-import { X, Eye, EyeOff } from 'lucide-react';
+import Model from 'react-body-highlighter';
+import type { IMuscleStats } from 'react-body-highlighter';
 
 interface MuscleHeatmapProps {
   profileId: string | null;
   daysBack?: number;
-  view: 'front' | 'back';
+  view?: 'front' | 'back'; // Kept for backwards compatibility but not used in split view
 }
 
 /**
@@ -57,79 +56,125 @@ const REGION_TO_MUSCLES: Record<BodyRegion, ScientificMuscle[]> = {
 };
 
 /**
- * Display names for body regions
+ * Abbreviated muscle names for compact display
  */
-const REGION_NAMES: Record<BodyRegion, string> = {
-  chest: 'Chest',
-  shoulders: 'Shoulders',
-  upperBack: 'Upper Back',
-  lowerBack: 'Lower Back',
-  biceps: 'Biceps',
-  triceps: 'Triceps',
-  forearms: 'Forearms',
-  abs: 'Abs',
-  obliques: 'Obliques',
-  quads: 'Quadriceps',
-  hamstrings: 'Hamstrings',
-  glutes: 'Glutes',
-  calves: 'Calves',
-  adductors: 'Adductors',
+const MUSCLE_ABBREVIATIONS: Record<ScientificMuscle, string> = {
+  'Pectoralis Major (Sternal)': 'Pec (St)',
+  'Pectoralis Major (Clavicular)': 'Pec (Cl)',
+  'Anterior Deltoid': 'Ant Delt',
+  'Lateral Deltoid': 'Lat Delt',
+  'Posterior Deltoid': 'Post Delt',
+  'Latissimus Dorsi': 'Lats',
+  'Middle Trapezius': 'Mid Trap',
+  'Upper Trapezius': 'Up Trap',
+  'Lower Trapezius': 'Low Trap',
+  'Erector Spinae': 'Erectors',
+  'Biceps Brachii': 'Biceps',
+  'Triceps (Lateral/Medial)': 'Tri (L/M)',
+  'Triceps (Long Head)': 'Tri (Long)',
+  'Forearm Flexors': 'Forearm Fl',
+  'Forearm Extensors': 'Forearm Ex',
+  'Rectus Abdominis': 'Abs',
+  'Hip Flexors': 'Hip Flex',
+  'Obliques': 'Obliques',
+  'Quadriceps (Vasti)': 'Quads (V)',
+  'Quadriceps (RF)': 'Quads (RF)',
+  'Hamstrings': 'Hams',
+  'Gluteus Maximus': 'Glute Max',
+  'Gluteus Medius': 'Glute Med',
+  'Gastrocnemius': 'Gastroc',
+  'Soleus': 'Soleus',
+  'Adductors': 'Adductors',
 };
 
 /**
- * Positioning strategy for each region
- * Defines where floating cards should appear relative to the body diagram
+ * Map body regions to react-body-highlighter muscle slugs
  */
-const REGION_POSITIONS: Record<
-  BodyRegion,
-  { top?: string; bottom?: string; left?: string; right?: string }
-> = {
-  shoulders: { top: '5%', left: '50%', right: 'auto' },
-  chest: { top: '20%', right: '2%' },
-  upperBack: { top: '20%', left: '2%' },
-  lowerBack: { top: '40%', left: '2%' },
-  biceps: { top: '30%', right: '2%' },
-  triceps: { top: '30%', left: '2%' },
-  forearms: { top: '45%', right: '2%' },
-  abs: { top: '35%', right: '2%' },
-  obliques: { top: '40%', left: '50%', right: 'auto' },
-  quads: { bottom: '25%', left: '2%' },
-  hamstrings: { bottom: '25%', right: '2%' },
-  glutes: { top: '45%', right: '2%' },
-  calves: { bottom: '5%', right: '2%' },
-  adductors: { bottom: '30%', left: '50%', right: 'auto' },
+const REGION_TO_LIBRARY_MUSCLES: Record<BodyRegion, { front: string[]; back: string[] }> = {
+  chest: { front: ['chest'], back: [] },
+  shoulders: { front: ['front-deltoids'], back: ['back-deltoids'] },
+  upperBack: { front: [], back: ['trapezius', 'upper-back'] },
+  lowerBack: { front: [], back: ['lower-back'] },
+  biceps: { front: ['biceps'], back: [] },
+  triceps: { front: [], back: ['triceps'] },
+  forearms: { front: ['forearm'], back: ['forearm'] },
+  abs: { front: ['abs'], back: [] },
+  obliques: { front: ['obliques'], back: [] },
+  quads: { front: ['quadriceps'], back: [] },
+  hamstrings: { front: [], back: ['hamstring'] },
+  glutes: { front: [], back: ['gluteal'] },
+  calves: { front: [], back: ['calves'] },
+  adductors: { front: ['adductor'], back: [] },
 };
 
 /**
- * Mobile-specific positioning - more compact for showing all tooltips
+ * Anchor points for leader lines (SVG coordinates relative to body container)
+ * These represent where lines should connect to on the split body view
  */
-const MOBILE_REGION_POSITIONS: Record<
-  BodyRegion,
-  { top?: string; bottom?: string; left?: string; right?: string }
-> = {
-  shoulders: { top: '2%', left: '50%', right: 'auto' },
-  chest: { top: '12%', right: '1%' },
-  upperBack: { top: '12%', left: '1%' },
-  lowerBack: { top: '32%', left: '1%' },
-  biceps: { top: '22%', right: '1%' },
-  triceps: { top: '22%', left: '1%' },
-  forearms: { top: '38%', right: '1%' },
-  abs: { top: '28%', right: '1%' },
-  obliques: { top: '38%', left: '50%', right: 'auto' },
-  quads: { bottom: '22%', left: '1%' },
-  hamstrings: { bottom: '22%', right: '1%' },
-  glutes: { top: '50%', right: '1%' },
-  calves: { bottom: '2%', right: '1%' },
-  adductors: { bottom: '30%', left: '50%', right: 'auto' },
+const REGION_ANCHORS: Record<BodyRegion, { x: number; y: number; side: 'front' | 'back' }> = {
+  // Front muscles (left side)
+  chest: { x: 25, y: 35, side: 'front' },
+  shoulders: { x: 20, y: 25, side: 'front' },
+  biceps: { x: 15, y: 40, side: 'front' },
+  forearms: { x: 10, y: 55, side: 'front' },
+  abs: { x: 25, y: 50, side: 'front' },
+  obliques: { x: 20, y: 55, side: 'front' },
+  quads: { x: 25, y: 70, side: 'front' },
+  adductors: { x: 25, y: 75, side: 'front' },
+
+  // Back muscles (right side)
+  upperBack: { x: 75, y: 35, side: 'back' },
+  lowerBack: { x: 75, y: 50, side: 'back' },
+  triceps: { x: 85, y: 40, side: 'back' },
+  hamstrings: { x: 75, y: 70, side: 'back' },
+  glutes: { x: 75, y: 60, side: 'back' },
+  calves: { x: 75, y: 85, side: 'back' },
 };
 
-interface RegionStats {
-  region: BodyRegion;
-  name: string;
-  totalVolume: number;
-  totalGoal: number;
+/**
+ * Fixed card positions to prevent overlap
+ * Positions are percentages relative to container
+ */
+const CARD_POSITIONS: Record<
+  ScientificMuscle,
+  { top: string; left?: string; right?: string; anchorX: number; anchorY: number }
+> = {
+  // Front - Left column
+  'Pectoralis Major (Sternal)': { top: '15%', left: '2%', anchorX: 25, anchorY: 35 },
+  'Pectoralis Major (Clavicular)': { top: '21%', left: '2%', anchorX: 25, anchorY: 32 },
+  'Anterior Deltoid': { top: '8%', left: '2%', anchorX: 20, anchorY: 25 },
+  'Biceps Brachii': { top: '27%', left: '2%', anchorX: 15, anchorY: 40 },
+  'Forearm Flexors': { top: '39%', left: '2%', anchorX: 10, anchorY: 55 },
+  'Rectus Abdominis': { top: '33%', left: '2%', anchorX: 25, anchorY: 50 },
+  'Hip Flexors': { top: '45%', left: '2%', anchorX: 25, anchorY: 58 },
+  'Obliques': { top: '51%', left: '2%', anchorX: 20, anchorY: 55 },
+  'Quadriceps (Vasti)': { top: '63%', left: '2%', anchorX: 25, anchorY: 70 },
+  'Quadriceps (RF)': { top: '69%', left: '2%', anchorX: 25, anchorY: 73 },
+  'Adductors': { top: '75%', left: '2%', anchorX: 25, anchorY: 75 },
+
+  // Back - Right column
+  'Lateral Deltoid': { top: '2%', right: '2%', anchorX: 75, anchorY: 25 },
+  'Posterior Deltoid': { top: '8%', right: '2%', anchorX: 80, anchorY: 28 },
+  'Latissimus Dorsi': { top: '21%', right: '2%', anchorX: 75, anchorY: 35 },
+  'Middle Trapezius': { top: '14%', right: '2%', anchorX: 75, anchorY: 30 },
+  'Upper Trapezius': { top: '27%', right: '2%', anchorX: 75, anchorY: 28 },
+  'Lower Trapezius': { top: '33%', right: '2%', anchorX: 75, anchorY: 42 },
+  'Erector Spinae': { top: '39%', right: '2%', anchorX: 75, anchorY: 50 },
+  'Triceps (Lateral/Medial)': { top: '45%', right: '2%', anchorX: 85, anchorY: 40 },
+  'Triceps (Long Head)': { top: '51%', right: '2%', anchorX: 85, anchorY: 43 },
+  'Forearm Extensors': { top: '57%', right: '2%', anchorX: 90, anchorY: 55 },
+  'Gluteus Maximus': { top: '63%', right: '2%', anchorX: 75, anchorY: 60 },
+  'Gluteus Medius': { top: '69%', right: '2%', anchorX: 75, anchorY: 57 },
+  'Hamstrings': { top: '75%', right: '2%', anchorX: 75, anchorY: 70 },
+  'Gastrocnemius': { top: '81%', right: '2%', anchorX: 75, anchorY: 85 },
+  'Soleus': { top: '87%', right: '2%', anchorX: 75, anchorY: 88 },
+};
+
+interface MuscleStats {
+  muscle: ScientificMuscle;
+  volume: number;
+  goal: number;
   percentage: number;
-  muscles: VolumeStatItem[];
 }
 
 /**
@@ -145,6 +190,18 @@ function getHeatColor(percentage: number): string {
 }
 
 /**
+ * Map percentage to frequency level (0-5) for body highlighting
+ */
+function getFrequencyLevel(percentage: number): number {
+  if (percentage === 0) return 0;
+  if (percentage < 25) return 1;
+  if (percentage < 50) return 2;
+  if (percentage < 75) return 3;
+  if (percentage < 100) return 4;
+  return 5;
+}
+
+/**
  * Hook to detect mobile viewport
  */
 function useIsMobile(): boolean {
@@ -152,7 +209,7 @@ function useIsMobile(): boolean {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
+      setIsMobile(window.innerWidth < 768);
     };
 
     checkMobile();
@@ -166,79 +223,85 @@ function useIsMobile(): boolean {
 export function MuscleHeatmap({
   profileId,
   daysBack = 7,
-  view,
 }: MuscleHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
-  const [visibleRegions, setVisibleRegions] = useState<Set<BodyRegion>>(new Set());
-  const [showAllLabels, setShowAllLabels] = useState(false);
+  const [visibleMuscles, setVisibleMuscles] = useState<Set<ScientificMuscle>>(
+    new Set(Object.keys(MUSCLE_ABBREVIATIONS) as ScientificMuscle[])
+  );
   const isMobile = useIsMobile();
 
-  // Calculate regional stats
-  const regionStats = useMemo(() => {
-    const statsMap = new Map(stats.map((s) => [s.name, s]));
-    const regions: RegionStats[] = [];
+  // Map stats to muscle-level data
+  const muscleStats = useMemo((): MuscleStats[] => {
+    return stats.map((s) => ({
+      muscle: s.name as ScientificMuscle,
+      volume: s.volume,
+      goal: s.goal,
+      percentage: s.percentage,
+    }));
+  }, [stats]);
+
+  // Create stats map for quick lookup
+  const statsMap = useMemo(() => {
+    return new Map(muscleStats.map((s) => [s.muscle, s]));
+  }, [muscleStats]);
+
+  // Calculate regional stats for body highlighting
+  const regionStatsForBody = useMemo(() => {
+    const regions = new Map<BodyRegion, { percentage: number }>();
 
     for (const [region, muscles] of Object.entries(REGION_TO_MUSCLES)) {
-      const muscleStats = muscles
-        .map((m) => statsMap.get(m))
-        .filter((s): s is VolumeStatItem => s !== undefined);
+      const muscleData = muscles
+        .map((m) => statsMap.get(m as ScientificMuscle))
+        .filter((s): s is MuscleStats => s !== undefined);
 
-      const totalVolume = muscleStats.reduce((sum, s) => sum + s.volume, 0);
-      const totalGoal = muscleStats.reduce((sum, s) => sum + s.goal, 0);
+      const totalVolume = muscleData.reduce((sum, s) => sum + s.volume, 0);
+      const totalGoal = muscleData.reduce((sum, s) => sum + s.goal, 0);
       const percentage = totalGoal > 0 ? (totalVolume / totalGoal) * 100 : 0;
 
-      regions.push({
-        region: region as BodyRegion,
-        name: REGION_NAMES[region as BodyRegion],
-        totalVolume,
-        totalGoal,
-        percentage,
-        muscles: muscleStats,
-      });
+      regions.set(region as BodyRegion, { percentage });
     }
 
     return regions;
-  }, [stats]);
+  }, [statsMap]);
 
-  // Convert to Map for anatomy components
-  const regionStatsMap = useMemo(() => {
-    return new Map(regionStats.map((r) => [r.region, r]));
-  }, [regionStats]);
-
-  const handleRegionClick = (region: RegionStats): void => {
-    // In "show all" mode, don't toggle individual regions
-    if (showAllLabels) {
-      return;
-    }
-
-    setVisibleRegions((prev) => {
+  // Toggle individual muscle visibility
+  const toggleMuscle = (muscle: ScientificMuscle): void => {
+    setVisibleMuscles((prev) => {
       const next = new Set(prev);
-      if (next.has(region.region)) {
-        next.delete(region.region);
+      if (next.has(muscle)) {
+        next.delete(muscle);
       } else {
-        next.add(region.region);
+        next.add(muscle);
       }
       return next;
     });
   };
 
-  // Handle "show all / hide all" toggle
-  const handleShowAllToggle = (showAll: boolean): void => {
-    setShowAllLabels(showAll);
-    if (showAll) {
-      // Show all regions
-      const allRegions = new Set(regionStats.map((r) => r.region));
-      setVisibleRegions(allRegions);
+  // Toggle all muscles
+  const toggleAll = (): void => {
+    if (visibleMuscles.size === muscleStats.length) {
+      // All visible, hide all
+      setVisibleMuscles(new Set());
     } else {
-      // Hide all regions
-      setVisibleRegions(new Set());
+      // Some hidden, show all
+      setVisibleMuscles(new Set(muscleStats.map((s) => s.muscle)));
     }
   };
 
-  const closeCard = (region: BodyRegion) => {
-    setVisibleRegions((prev) => {
+  // Handle region click on body - toggle all muscles in that region
+  const handleRegionClick = (region: BodyRegion): void => {
+    const muscles = REGION_TO_MUSCLES[region] as ScientificMuscle[];
+    const allVisible = muscles.every((m) => visibleMuscles.has(m));
+
+    setVisibleMuscles((prev) => {
       const next = new Set(prev);
-      next.delete(region);
+      if (allVisible) {
+        // Hide all muscles in region
+        muscles.forEach((m) => next.delete(m));
+      } else {
+        // Show all muscles in region
+        muscles.forEach((m) => next.add(m));
+      }
       return next;
     });
   };
@@ -259,481 +322,140 @@ export function MuscleHeatmap({
     );
   }
 
+  const allVisible = visibleMuscles.size === muscleStats.length;
+  const toggleLabel = allVisible ? 'Hide All' : 'Show All';
+
   return (
     <div className="relative">
-      {/* Show All / Hide All Toggle */}
-      <div className="mb-6 flex justify-center gap-3">
-        <div className="inline-flex rounded-lg bg-primary-800 p-1">
-          <button
-            onClick={() => handleShowAllToggle(false)}
-            className={`px-4 py-2 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
-              !showAllLabels
-                ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/50'
-                : 'text-primary-300 hover:text-white'
-            }`}
-          >
-            <Eye size={14} />
-            <span>Tap Muscles</span>
-          </button>
-          <button
-            onClick={() => handleShowAllToggle(true)}
-            className={`px-4 py-2 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
-              showAllLabels
-                ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/50'
-                : 'text-primary-300 hover:text-white'
-            }`}
-          >
-            <EyeOff size={14} />
-            <span>Show All</span>
-          </button>
-        </div>
+      {/* Toggle Button */}
+      <div className="mb-4 flex justify-center">
+        <button
+          onClick={toggleAll}
+          className="px-6 py-2 rounded-lg bg-primary-800 hover:bg-primary-700 text-white font-medium text-sm transition-colors border border-orange-500/30 hover:border-orange-500/50"
+        >
+          {toggleLabel}
+        </button>
       </div>
 
-      {/* Show All Mode - Desktop: Positioned cards around body, Mobile: Grid below */}
-      {showAllLabels ? (
-        isMobile ? (
-          <>
-            <div className="relative min-h-[400px]">
-              <BodyHighlighter
-                view={view}
-                regionStats={regionStatsMap}
-                onRegionClick={handleRegionClick}
-                getHeatColor={getHeatColor}
-              />
-            </div>
-            <AllMusclesList regionStats={regionStats} getHeatColor={getHeatColor} />
-          </>
-        ) : (
-          <DesktopShowAllLayout
-            view={view}
-            regionStats={regionStats}
-            regionStatsMap={regionStatsMap}
-            onRegionClick={handleRegionClick}
-            getHeatColor={getHeatColor}
-          />
-        )
+      {/* Split Body View with Cards and Leader Lines */}
+      {isMobile ? (
+        <MobileSplitView
+          muscleStats={muscleStats}
+          visibleMuscles={visibleMuscles}
+          regionStats={regionStatsForBody}
+          onMuscleClick={toggleMuscle}
+          onRegionClick={handleRegionClick}
+        />
       ) : (
-        /* Tap Muscles Mode - Body with floating tooltips on tap */
-        <div className="relative min-h-[400px] md:min-h-[500px]">
-          <BodyHighlighter
-            view={view}
-            regionStats={regionStatsMap}
-            onRegionClick={handleRegionClick}
-            getHeatColor={getHeatColor}
-          />
-
-          {/* Floating Tooltip Cards */}
-          {regionStats.map((region) =>
-            visibleRegions.has(region.region) ? (
-              isMobile ? (
-                <MobileMuscleTooltip
-                  key={region.region}
-                  region={region}
-                  position={MOBILE_REGION_POSITIONS[region.region]}
-                  onClose={() => closeCard(region.region)}
-                  showCloseButton={true}
-                />
-              ) : (
-                <FloatingMuscleCard
-                  key={region.region}
-                  region={region}
-                  position={REGION_POSITIONS[region.region]}
-                  onClose={() => closeCard(region.region)}
-                />
-              )
-            ) : null
-          )}
-        </div>
+        <DesktopSplitView
+          muscleStats={muscleStats}
+          visibleMuscles={visibleMuscles}
+          regionStats={regionStatsForBody}
+          onMuscleClick={toggleMuscle}
+          onRegionClick={handleRegionClick}
+        />
       )}
-
-      {/* Heat Map Legend */}
-      <div className="mt-6 flex items-center justify-center gap-2 text-xs">
-        <span className="text-primary-300">Low</span>
-        <div className="flex h-3 w-48 overflow-hidden rounded-full">
-          <div className="flex-1 bg-gradient-to-r from-primary-500 via-accent-orange via-amber-400 to-accent-cyan" />
-        </div>
-        <span className="text-primary-300">Goal Met</span>
-      </div>
     </div>
   );
 }
 
 /**
- * Mobile Muscle Tooltip Component
- * Ultra-compact text-only tooltip for mobile devices
- * Shows individual muscles with color-coded progress indicators
+ * Mobile Split View Component
+ * Shows front/back bodies side-by-side with compact muscle cards
  */
-function MobileMuscleTooltip({
-  region,
-  position,
-  onClose,
-  showCloseButton,
+function MobileSplitView({
+  muscleStats,
+  visibleMuscles,
+  regionStats,
+  onMuscleClick,
+  onRegionClick,
 }: {
-  region: RegionStats;
-  position: { top?: string; bottom?: string; left?: string; right?: string };
-  onClose: () => void;
-  showCloseButton: boolean;
+  muscleStats: MuscleStats[];
+  visibleMuscles: Set<ScientificMuscle>;
+  regionStats: Map<BodyRegion, { percentage: number }>;
+  onMuscleClick: (muscle: ScientificMuscle) => void;
+  onRegionClick: (region: BodyRegion) => void;
 }): React.ReactElement {
-  // Calculate transform for centered cards
-  const needsTransform = position.left === '50%';
-  const transform = needsTransform ? 'translateX(-50%)' : undefined;
-
-  /**
-   * Get color classes based on muscle progress percentage
-   */
-  const getProgressColors = (percentage: number) => {
-    if (percentage >= 100) {
-      return {
-        bg: 'bg-cyan-500/10',
-        text: 'text-cyan-400',
-        border: 'border-cyan-500/30',
-        dot: 'bg-cyan-400',
-      };
-    } else if (percentage >= 50) {
-      return {
-        bg: 'bg-amber-500/10',
-        text: 'text-amber-400',
-        border: 'border-amber-500/30',
-        dot: 'bg-amber-400',
-      };
-    } else {
-      return {
-        bg: 'bg-red-500/10',
-        text: 'text-red-400',
-        border: 'border-red-500/30',
-        dot: 'bg-red-400',
-      };
-    }
-  };
-
-  /**
-   * Abbreviate long muscle names for mobile
-   */
-  const abbreviateMuscle = (name: ScientificMuscle): string => {
-    return name
-      .replace('Pectoralis Major', 'Pec Major')
-      .replace('(Sternal)', '(Stern)')
-      .replace('(Clavicular)', '(Clav)')
-      .replace('Triceps (Lateral/Medial)', 'Tri (Lat/Med)')
-      .replace('Triceps (Long Head)', 'Tri (Long)')
-      .replace('Quadriceps', 'Quads')
-      .replace('Latissimus Dorsi', 'Lats')
-      .replace('Gastrocnemius', 'Gastroc');
-  };
-
   return (
-    <>
-      <div
-        className="absolute z-50 animate-mobileTooltipIn"
-        style={{
-          top: position.top,
-          bottom: position.bottom,
-          left: position.left,
-          right: position.right,
-          transform,
-        }}
-      >
-        <div className="min-w-[140px] max-w-[180px] bg-zinc-900/95 backdrop-blur-sm rounded-md border border-zinc-700/50 shadow-xl shadow-black/30 overflow-hidden">
-          {/* Muscle List - No header, just individual muscles */}
-          <div className="p-2 space-y-1">
-            {region.muscles.map((muscle) => {
-              const colors = getProgressColors(muscle.percentage);
-              return (
-                <div
-                  key={muscle.name}
-                  className={`flex items-center justify-between gap-1.5 px-2 py-1 rounded ${colors.bg} border ${colors.border}`}
-                >
-                  {/* Muscle name */}
-                  <span
-                    className={`text-[10px] leading-tight ${colors.text} font-medium truncate flex-1`}
-                  >
-                    {abbreviateMuscle(muscle.name as ScientificMuscle)}
-                  </span>
+    <div className="relative">
+      {/* Split Body Container */}
+      <div className="relative flex justify-center min-h-[500px]">
+        {/* SVG Container for Leader Lines */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none z-10"
+          style={{ overflow: 'visible' }}
+        >
+          {muscleStats
+            .filter((s) => visibleMuscles.has(s.muscle))
+            .map((stat) => {
+              const pos = CARD_POSITIONS[stat.muscle];
+              if (!pos) return null;
 
-                  {/* Volume/Goal */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className={`text-[10px] font-bold ${colors.text} tabular-nums`}>
-                      {muscle.volume.toFixed(1)}
-                    </span>
-                    <span className="text-[9px] text-zinc-500">/</span>
-                    <span className="text-[9px] text-zinc-500 tabular-nums">{muscle.goal}</span>
-                  </div>
-                </div>
+              // Calculate card center position
+              const cardLeft = pos.left
+                ? parseFloat(pos.left)
+                : 100 - parseFloat(pos.right || '0');
+              const cardTop = parseFloat(pos.top);
+              const cardX = cardLeft + 9; // Approximate card center
+              const cardY = cardTop + 3;
+
+              return (
+                <line
+                  key={stat.muscle}
+                  x1={`${cardX}%`}
+                  y1={`${cardY}%`}
+                  x2={`${pos.anchorX}%`}
+                  y2={`${pos.anchorY}%`}
+                  stroke="rgba(255, 255, 255, 0.15)"
+                  strokeWidth="1"
+                  className="transition-opacity duration-300"
+                />
               );
             })}
-          </div>
+        </svg>
 
-          {/* Close button (only when in tap mode) */}
-          {showCloseButton && (
-            <button
-              onClick={onClose}
-              className="absolute -top-1 -right-1 p-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors shadow-lg"
-              aria-label="Close"
-            >
-              <X size={12} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* CSS for animations */}
-      <style>{`
-        @keyframes mobileTooltipIn {
-          from {
-            opacity: 0;
-            transform: ${transform || 'none'} scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: ${transform || 'none'} scale(1);
-          }
-        }
-        .animate-mobileTooltipIn {
-          animation: mobileTooltipIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-      `}</style>
-    </>
-  );
-}
-
-/**
- * Floating Muscle Card Component
- * Displays regional muscle stats in a tooltip-style card positioned near the muscle
- */
-function FloatingMuscleCard({
-  region,
-  position,
-  onClose,
-}: {
-  region: RegionStats;
-  position: { top?: string; bottom?: string; left?: string; right?: string };
-  onClose: () => void;
-}): React.ReactElement {
-  // Calculate transform for centered cards
-  const needsTransform = position.left === '50%';
-  const transform = needsTransform ? 'translateX(-50%)' : undefined;
-
-  return (
-    <>
-      <div
-        className="absolute z-50 animate-floatIn"
-        style={{
-          top: position.top,
-          bottom: position.bottom,
-          left: position.left,
-          right: position.right,
-          transform,
-        }}
-      >
-        <div className="w-[280px] max-w-[calc(100vw-2rem)] md:w-[320px] bg-zinc-900/95 backdrop-blur-md rounded-lg border border-zinc-700/50 shadow-2xl shadow-black/50 overflow-hidden">
-          {/* Header */}
-          <div className="relative px-4 pt-4 pb-3 border-b border-zinc-800">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base md:text-lg font-bold text-white truncate">
-                  {region.name}
-                </h3>
-                <p className="text-xs md:text-sm text-zinc-400 mt-0.5">
-                  <span className="font-semibold text-orange-500">
-                    {region.totalVolume.toFixed(1)}
-                  </span>
-                  <span className="mx-1">/</span>
-                  <span>{region.totalGoal}</span>
-                  <span className="ml-1">sets</span>
-                </p>
-              </div>
-              <div className="flex items-start gap-2 flex-shrink-0">
-                {/* Percentage Badge */}
-                <div
-                  className={`px-2 py-1 rounded text-xs font-bold ${
-                    region.percentage >= 100
-                      ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30'
-                      : 'bg-orange-500/20 text-orange-500 border border-orange-500/30'
-                  }`}
-                >
-                  {region.percentage.toFixed(0)}%
-                </div>
-                {/* Close Button */}
-                <button
-                  onClick={onClose}
-                  className="p-1 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white"
-                  aria-label="Close card"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
-
-            {/* Overall Progress Bar */}
-            <div className="mt-3 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(region.percentage, 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Muscle List */}
-          <div className="max-h-[280px] md:max-h-[320px] overflow-y-auto p-3 space-y-2.5">
-            {region.muscles.map((muscle) => (
-              <div key={muscle.name} className="group">
-                <div className="flex items-baseline justify-between gap-2 mb-1.5">
-                  <span className="text-xs md:text-sm text-zinc-300 leading-tight flex-1 min-w-0">
-                    {muscle.name}
-                  </span>
-                  <span className="text-xs md:text-sm font-bold text-orange-500 tabular-nums flex-shrink-0">
-                    {muscle.volume.toFixed(1)}
-                  </span>
-                </div>
-                {/* Individual Progress Bar */}
-                <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      muscle.percentage >= 100
-                        ? 'bg-gradient-to-r from-accent-cyan to-cyan-400'
-                        : 'bg-gradient-to-r from-orange-500 to-orange-600'
-                    }`}
-                    style={{ width: `${Math.min(muscle.percentage, 100)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+        {/* Front Half - Left Side */}
+        <div className="w-1/2 overflow-hidden relative">
+          <div className="relative -right-1/2">
+            <SplitBodyHighlighter
+              type="anterior"
+              regionStats={regionStats}
+              onRegionClick={onRegionClick}
+            />
           </div>
         </div>
-      </div>
 
-      {/* CSS for animations */}
-      <style>{`
-        @keyframes floatIn {
-          from {
-            opacity: 0;
-            transform: ${transform || 'none'} scale(0.85) translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: ${transform || 'none'} scale(1) translateY(0);
-          }
-        }
-        .animate-floatIn {
-          animation: floatIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        {/* Back Half - Right Side */}
+        <div className="w-1/2 overflow-hidden relative">
+          <div className="relative -left-1/2">
+            <SplitBodyHighlighter
+              type="posterior"
+              regionStats={regionStats}
+              onRegionClick={onRegionClick}
+            />
+          </div>
+        </div>
 
-        /* Custom scrollbar for muscle list */
-        .overflow-y-auto::-webkit-scrollbar {
-          width: 6px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-track {
-          background: rgb(39, 39, 42);
-          border-radius: 3px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-thumb {
-          background: rgb(113, 113, 122);
-          border-radius: 3px;
-        }
-        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-          background: rgb(161, 161, 170);
-        }
-      `}</style>
-    </>
-  );
-}
+        {/* Orange Divider */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-orange-500 z-20" />
 
-/**
- * All Muscles List Component
- * Displays all muscles in a clean, scrollable grid format for "Show All" mode
- */
-function AllMusclesList({
-  regionStats,
-  getHeatColor,
-}: {
-  regionStats: RegionStats[];
-  getHeatColor: (percentage: number) => string;
-}): React.ReactElement {
-  /**
-   * Get color classes based on muscle progress percentage
-   */
-  const getProgressColors = (
-    percentage: number
-  ): {
-    bg: string;
-    text: string;
-    border: string;
-  } => {
-    if (percentage >= 100) {
-      return {
-        bg: 'bg-cyan-500/10',
-        text: 'text-cyan-400',
-        border: 'border-cyan-500/30',
-      };
-    } else if (percentage >= 50) {
-      return {
-        bg: 'bg-amber-500/10',
-        text: 'text-amber-400',
-        border: 'border-amber-500/30',
-      };
-    } else {
-      return {
-        bg: 'bg-red-500/10',
-        text: 'text-red-400',
-        border: 'border-red-500/30',
-      };
-    }
-  };
+        {/* Muscle Cards */}
+        {muscleStats.map((stat) => {
+          if (!visibleMuscles.has(stat.muscle)) return null;
 
-  // Flatten all muscles from all regions
-  const allMuscles = regionStats.flatMap((region) =>
-    region.muscles.map((muscle) => ({
-      ...muscle,
-      regionName: region.name,
-    }))
-  );
+          const pos = CARD_POSITIONS[stat.muscle];
+          if (!pos) return null;
 
-  // Suppress unused parameter warning - getHeatColor reserved for future use
-  void getHeatColor;
-
-  return (
-    <div className="mt-4 rounded-lg bg-primary-800/50 p-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-        {allMuscles.map((muscle) => {
-          const colors = getProgressColors(muscle.percentage);
           return (
-            <div
-              key={muscle.name}
-              className={`${colors.bg} ${colors.border} border rounded-md px-2 py-1.5`}
-            >
-              <div className="flex items-center justify-between gap-1">
-                <span
-                  className={`text-[10px] sm:text-xs ${colors.text} font-medium truncate flex-1`}
-                >
-                  {muscle.name
-                    .replace('Pectoralis Major', 'Pec')
-                    .replace('(Sternal)', '(St)')
-                    .replace('(Clavicular)', '(Cl)')
-                    .replace('Triceps (Lateral/Medial)', 'Tri (L/M)')
-                    .replace('Triceps (Long Head)', 'Tri (Long)')
-                    .replace('Quadriceps', 'Quads')
-                    .replace('Latissimus Dorsi', 'Lats')
-                    .replace('Gastrocnemius', 'Gastroc')
-                    .replace('Rectus Abdominis', 'Abs')}
-                </span>
-                <span className={`text-[10px] sm:text-xs font-bold ${colors.text} tabular-nums`}>
-                  {muscle.volume.toFixed(1)}
-                </span>
-              </div>
-              {/* Mini progress bar */}
-              <div className="mt-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${
-                    muscle.percentage >= 100
-                      ? 'bg-cyan-400'
-                      : muscle.percentage >= 50
-                        ? 'bg-amber-400'
-                        : 'bg-red-400'
-                  }`}
-                  style={{ width: `${Math.min(muscle.percentage, 100)}%` }}
-                />
-              </div>
-            </div>
+            <MuscleCard
+              key={stat.muscle}
+              muscle={stat.muscle}
+              volume={stat.volume}
+              goal={stat.goal}
+              percentage={stat.percentage}
+              position={pos}
+              onClick={() => onMuscleClick(stat.muscle)}
+            />
           );
         })}
       </div>
@@ -742,138 +464,281 @@ function AllMusclesList({
 }
 
 /**
- * Desktop Show All Layout Component
- * Displays body in center with positioned region cards on left and right sides
+ * Desktop Split View - Same layout but larger
  */
-function DesktopShowAllLayout({
-  view,
+function DesktopSplitView({
+  muscleStats,
+  visibleMuscles,
   regionStats,
-  regionStatsMap,
+  onMuscleClick,
   onRegionClick,
-  getHeatColor,
 }: {
-  view: 'front' | 'back';
-  regionStats: RegionStats[];
-  regionStatsMap: Map<BodyRegion, RegionStats>;
-  onRegionClick: (region: RegionStats) => void;
-  getHeatColor: (percentage: number) => string;
+  muscleStats: MuscleStats[];
+  visibleMuscles: Set<ScientificMuscle>;
+  regionStats: Map<BodyRegion, { percentage: number }>;
+  onMuscleClick: (muscle: ScientificMuscle) => void;
+  onRegionClick: (region: BodyRegion) => void;
 }): React.ReactElement {
-  // Define which regions appear on which side for each view
-  const FRONT_LEFT_REGIONS: BodyRegion[] = ['quads', 'adductors'];
-  const FRONT_RIGHT_REGIONS: BodyRegion[] = [
-    'shoulders',
-    'chest',
-    'biceps',
-    'abs',
-    'forearms',
-    'obliques',
-  ];
-
-  const BACK_LEFT_REGIONS: BodyRegion[] = ['upperBack', 'lowerBack', 'triceps', 'hamstrings'];
-  const BACK_RIGHT_REGIONS: BodyRegion[] = ['glutes', 'calves'];
-
-  const leftRegions = view === 'front' ? FRONT_LEFT_REGIONS : BACK_LEFT_REGIONS;
-  const rightRegions = view === 'front' ? FRONT_RIGHT_REGIONS : BACK_RIGHT_REGIONS;
-
-  // Filter to only regions with data
-  const leftCards = regionStats.filter((r) => leftRegions.includes(r.region));
-  const rightCards = regionStats.filter((r) => rightRegions.includes(r.region));
-
-  // Suppress unused parameter warnings
-  void onRegionClick;
-
   return (
-    <div className="relative flex items-start justify-center gap-4 min-h-[700px]">
-      {/* Left Column - Region Cards */}
-      <div className="flex flex-col gap-3 w-[240px] pt-8">
-        {leftCards.map((region) => (
-          <DesktopRegionCard key={region.region} region={region} side="left" />
-        ))}
-      </div>
+    <div className="relative">
+      {/* Split Body Container */}
+      <div className="relative flex justify-center min-h-[600px] max-w-4xl mx-auto">
+        {/* SVG Container for Leader Lines */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none z-10"
+          style={{ overflow: 'visible' }}
+        >
+          {muscleStats
+            .filter((s) => visibleMuscles.has(s.muscle))
+            .map((stat) => {
+              const pos = CARD_POSITIONS[stat.muscle];
+              if (!pos) return null;
 
-      {/* Center - Body Diagram */}
-      <div className="flex-shrink-0 w-[300px]">
-        <BodyHighlighter
-          view={view}
-          regionStats={regionStatsMap}
-          onRegionClick={() => {}}
-          getHeatColor={getHeatColor}
-        />
-      </div>
+              const cardLeft = pos.left
+                ? parseFloat(pos.left)
+                : 100 - parseFloat(pos.right || '0');
+              const cardTop = parseFloat(pos.top);
+              const cardX = cardLeft + 7;
+              const cardY = cardTop + 2.5;
 
-      {/* Right Column - Region Cards */}
-      <div className="flex flex-col gap-3 w-[240px] pt-8">
-        {rightCards.map((region) => (
-          <DesktopRegionCard key={region.region} region={region} side="right" />
-        ))}
+              return (
+                <line
+                  key={stat.muscle}
+                  x1={`${cardX}%`}
+                  y1={`${cardY}%`}
+                  x2={`${pos.anchorX}%`}
+                  y2={`${pos.anchorY}%`}
+                  stroke="rgba(255, 255, 255, 0.2)"
+                  strokeWidth="1.5"
+                  className="transition-opacity duration-300"
+                />
+              );
+            })}
+        </svg>
+
+        {/* Front Half - Left Side */}
+        <div className="w-1/2 overflow-hidden relative">
+          <div className="relative -right-1/2">
+            <SplitBodyHighlighter
+              type="anterior"
+              regionStats={regionStats}
+              onRegionClick={onRegionClick}
+            />
+          </div>
+        </div>
+
+        {/* Back Half - Right Side */}
+        <div className="w-1/2 overflow-hidden relative">
+          <div className="relative -left-1/2">
+            <SplitBodyHighlighter
+              type="posterior"
+              regionStats={regionStats}
+              onRegionClick={onRegionClick}
+            />
+          </div>
+        </div>
+
+        {/* Orange Divider */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-orange-500 z-20" />
+
+        {/* Muscle Cards - Larger for desktop */}
+        {muscleStats.map((stat) => {
+          if (!visibleMuscles.has(stat.muscle)) return null;
+
+          const pos = CARD_POSITIONS[stat.muscle];
+          if (!pos) return null;
+
+          return (
+            <MuscleCard
+              key={stat.muscle}
+              muscle={stat.muscle}
+              volume={stat.volume}
+              goal={stat.goal}
+              percentage={stat.percentage}
+              position={pos}
+              onClick={() => onMuscleClick(stat.muscle)}
+              desktop
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
 
 /**
- * Desktop Region Card Component
- * Larger card showing region stats with individual muscles
+ * Muscle Card Component
+ * Compact card showing muscle name, volume/goal, and color-coded progress
  */
-function DesktopRegionCard({
-  region,
-  side,
+function MuscleCard({
+  muscle,
+  volume,
+  goal,
+  percentage,
+  position,
+  onClick,
+  desktop = false,
 }: {
-  region: RegionStats;
-  side: 'left' | 'right';
+  muscle: ScientificMuscle;
+  volume: number;
+  goal: number;
+  percentage: number;
+  position: { top: string; left?: string; right?: string };
+  onClick: () => void;
+  desktop?: boolean;
 }): React.ReactElement {
-  // Suppress unused warning
-  void side;
+  // Determine color based on percentage
+  let bgColor: string;
+  let borderColor: string;
+  let textColor: string;
+
+  if (percentage >= 100) {
+    bgColor = 'rgba(34, 197, 94, 0.15)'; // green
+    borderColor = 'rgb(34, 197, 94)';
+    textColor = 'text-green-400';
+  } else if (percentage >= 50) {
+    bgColor = 'rgba(245, 158, 11, 0.15)'; // orange
+    borderColor = 'rgb(245, 158, 11)';
+    textColor = 'text-orange-400';
+  } else {
+    bgColor = 'rgba(239, 68, 68, 0.15)'; // red
+    borderColor = 'rgb(239, 68, 68)';
+    textColor = 'text-red-400';
+  }
+
+  const abbreviation = MUSCLE_ABBREVIATIONS[muscle] || muscle;
 
   return (
-    <div className="bg-zinc-900/90 backdrop-blur-sm rounded-lg border border-zinc-700/50 shadow-xl overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-zinc-800">
-        <div className="flex items-center justify-between gap-2">
-          <h4 className="text-sm font-bold text-white">{region.name}</h4>
-          <span
-            className={`px-2 py-0.5 rounded text-xs font-bold ${
-              region.percentage >= 100
-                ? 'bg-cyan-500/20 text-cyan-400'
-                : 'bg-orange-500/20 text-orange-400'
-            }`}
-          >
-            {region.percentage.toFixed(0)}%
-          </span>
+    <button
+      onClick={onClick}
+      className="absolute z-30 transition-transform hover:scale-105 active:scale-95"
+      style={{
+        top: position.top,
+        left: position.left,
+        right: position.right,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(4px)',
+        border: `1px solid ${borderColor}`,
+        borderRadius: '6px',
+        padding: desktop ? '6px 8px' : '4px 6px',
+        width: desktop ? '80px' : '60px',
+        boxShadow: `0 0 10px ${borderColor}40`,
+      }}
+    >
+      <div className="text-left">
+        {/* Muscle Name */}
+        <div className={`${textColor} font-bold leading-tight`} style={{ fontSize: desktop ? '11px' : '10px' }}>
+          {abbreviation}
         </div>
-        <p className="text-xs text-zinc-400 mt-1">
-          <span className="font-semibold text-orange-400">{region.totalVolume.toFixed(1)}</span>
-          <span className="mx-1">/</span>
-          <span>{region.totalGoal} sets</span>
-        </p>
-        {/* Progress bar */}
-        <div className="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              region.percentage >= 100
-                ? 'bg-gradient-to-r from-cyan-500 to-cyan-400'
-                : 'bg-gradient-to-r from-orange-500 to-orange-400'
-            }`}
-            style={{ width: `${Math.min(region.percentage, 100)}%` }}
-          />
+        {/* Volume / Goal */}
+        <div className="text-white/80 font-medium mt-0.5" style={{ fontSize: desktop ? '10px' : '9px' }}>
+          {volume.toFixed(1)} / {goal}
         </div>
+      </div>
+    </button>
+  );
+}
+
+/**
+ * Split Body Highlighter Component
+ * Renders a single Model component with region-based coloring
+ */
+function SplitBodyHighlighter({
+  type,
+  regionStats,
+  onRegionClick,
+}: {
+  type: 'anterior' | 'posterior';
+  regionStats: Map<BodyRegion, { percentage: number }>;
+  onRegionClick: (region: BodyRegion) => void;
+}): React.ReactElement {
+  // Create exercise data for the library
+  const exerciseData = useMemo(() => {
+    const data: any[] = [];
+    const viewKey = type === 'anterior' ? 'front' : 'back';
+
+    regionStats.forEach((stats, region) => {
+      const muscles = REGION_TO_LIBRARY_MUSCLES[region][viewKey];
+
+      if (muscles.length > 0) {
+        const frequency = getFrequencyLevel(stats.percentage);
+
+        muscles.forEach((muscle) => {
+          data.push({
+            name: region,
+            muscles: [muscle],
+            frequency,
+          });
+        });
+      }
+    });
+
+    return data;
+  }, [type, regionStats]);
+
+  // Color array for highlighting
+  const highlightedColors = useMemo(() => {
+    return [
+      getHeatColor(12.5),  // 0-25%
+      getHeatColor(37.5),  // 25-50%
+      getHeatColor(62.5),  // 50-75%
+      getHeatColor(87.5),  // 75-100%
+      getHeatColor(100),   // 100%+
+    ];
+  }, []);
+
+  // Handle muscle click - map back to region
+  const handleMuscleClick = (muscleStats: IMuscleStats) => {
+    const clickedMuscle = muscleStats.muscle;
+    const viewKey = type === 'anterior' ? 'front' : 'back';
+
+    for (const [region] of regionStats) {
+      const muscles = REGION_TO_LIBRARY_MUSCLES[region][viewKey];
+      if (muscles.includes(clickedMuscle)) {
+        onRegionClick(region);
+        break;
+      }
+    }
+  };
+
+  return (
+    <>
+      <div className="flex justify-center">
+        <Model
+          type={type}
+          data={exerciseData}
+          highlightedColors={highlightedColors}
+          bodyColor="rgb(63, 63, 70)"
+          onClick={handleMuscleClick}
+          style={{
+            width: '100%',
+            maxWidth: '20rem',
+          }}
+          svgStyle={{
+            filter: 'drop-shadow(0 0 15px rgba(245, 158, 11, 0.1))',
+          }}
+        />
       </div>
 
-      {/* Muscle List */}
-      <div className="px-4 py-2 space-y-1.5">
-        {region.muscles.map((muscle) => (
-          <div key={muscle.name} className="flex items-center justify-between gap-2">
-            <span className="text-xs text-zinc-300 truncate flex-1">{muscle.name}</span>
-            <span
-              className={`text-xs font-bold tabular-nums ${
-                muscle.percentage >= 100 ? 'text-cyan-400' : 'text-orange-400'
-              }`}
-            >
-              {muscle.volume.toFixed(1)}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+      {/* Hover styles */}
+      <style>{`
+        .rbh polygon {
+          transition: all 0.2s ease;
+          cursor: pointer;
+          stroke: rgb(24, 24, 27);
+          stroke-width: 0.5px;
+        }
+
+        .rbh polygon:hover {
+          filter: brightness(1.4) drop-shadow(0 0 6px currentColor);
+          stroke: rgb(245, 158, 11);
+          stroke-width: 1.5px;
+        }
+
+        .rbh polygon:active {
+          filter: brightness(1.2);
+        }
+      `}</style>
+    </>
   );
 }
