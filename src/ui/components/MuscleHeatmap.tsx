@@ -5,8 +5,12 @@
 
 import { useMemo, useState } from 'react';
 import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
+import { useProfile } from '@db/hooks/useProfiles';
 import type { VolumeStatItem } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
+import type { Gender } from '@db/index';
+import { MaleAnatomySVG } from './anatomy/MaleAnatomySVG';
+import { FemaleAnatomySVG } from './anatomy/FemaleAnatomySVG';
 import { X } from 'lucide-react';
 
 interface MuscleHeatmapProps {
@@ -105,6 +109,7 @@ function getGlowFilter(percentage: number): string {
 
 export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+  const { profile } = useProfile(profileId);
   const [selectedRegion, setSelectedRegion] = useState<RegionStats | null>(null);
   const [view, setView] = useState<'front' | 'back'>('front');
 
@@ -135,6 +140,11 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
     return regions;
   }, [stats]);
 
+  // Convert to Map for anatomy components
+  const regionStatsMap = useMemo(() => {
+    return new Map(regionStats.map((r) => [r.region, r]));
+  }, [regionStats]);
+
   const handleRegionClick = (region: RegionStats) => {
     setSelectedRegion(region);
   };
@@ -159,23 +169,9 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
     );
   }
 
-  const frontRegions = regionStats.filter((r) =>
-    ['chest', 'shoulders', 'biceps', 'forearms', 'abs', 'obliques', 'quads', 'adductors'].includes(
-      r.region
-    )
-  );
-  const backRegions = regionStats.filter((r) =>
-    [
-      'shoulders',
-      'upperBack',
-      'lowerBack',
-      'triceps',
-      'forearms',
-      'glutes',
-      'hamstrings',
-      'calves',
-    ].includes(r.region)
-  );
+  // Get gender from profile (default to male if not set)
+  const gender: Gender = profile?.gender ?? 'male';
+  const AnatomyComponent = gender === 'female' ? FemaleAnatomySVG : MaleAnatomySVG;
 
   return (
     <div className="relative">
@@ -207,11 +203,13 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
 
       {/* Body Diagram */}
       <div className="flex justify-center">
-        {view === 'front' ? (
-          <FrontBodySVG regions={frontRegions} onRegionClick={handleRegionClick} />
-        ) : (
-          <BackBodySVG regions={backRegions} onRegionClick={handleRegionClick} />
-        )}
+        <AnatomyComponent
+          view={view}
+          regionStats={regionStatsMap}
+          onRegionClick={handleRegionClick}
+          getHeatColor={getHeatColor}
+          getGlowFilter={getGlowFilter}
+        />
       </div>
 
       {/* Heat Map Legend */}
@@ -228,278 +226,6 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
         <MuscleDetailPanel region={selectedRegion} onClose={closeDetail} />
       )}
     </div>
-  );
-}
-
-/**
- * Front Body SVG Component
- */
-function FrontBodySVG({
-  regions,
-  onRegionClick,
-}: {
-  regions: RegionStats[];
-  onRegionClick: (region: RegionStats) => void;
-}): React.ReactElement {
-  const getRegionStats = (region: BodyRegion) => regions.find((r) => r.region === region);
-
-  return (
-    <svg
-      viewBox="0 0 200 400"
-      className="w-full max-w-xs md:max-w-sm"
-      style={{ filter: 'drop-shadow(0 0 20px rgba(34, 211, 238, 0.1))' }}
-    >
-      {/* Head */}
-      <ellipse cx="100" cy="25" rx="18" ry="22" fill="rgb(39, 39, 42)" className="opacity-40" />
-
-      {/* Neck */}
-      <rect x="92" y="42" width="16" height="18" fill="rgb(39, 39, 42)" className="opacity-40" />
-
-      {/* Chest */}
-      <BodyRegion
-        d="M 70 60 Q 65 80 70 95 L 80 105 L 100 108 L 120 105 L 130 95 Q 135 80 130 60 L 100 62 Z"
-        region={getRegionStats('chest')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Shoulders */}
-      <BodyRegion
-        d="M 50 60 Q 45 55 42 62 L 38 75 Q 40 82 48 85 L 65 80 L 70 70 Z"
-        region={getRegionStats('shoulders')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 150 60 Q 155 55 158 62 L 162 75 Q 160 82 152 85 L 135 80 L 130 70 Z"
-        region={getRegionStats('shoulders')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Abs */}
-      <BodyRegion
-        d="M 78 108 L 80 135 Q 82 155 85 170 L 100 173 L 115 170 Q 118 155 120 135 L 122 108 Z"
-        region={getRegionStats('abs')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Obliques */}
-      <BodyRegion
-        d="M 70 110 L 65 125 L 68 145 L 78 140 L 80 120 Z"
-        region={getRegionStats('obliques')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 130 110 L 135 125 L 132 145 L 122 140 L 120 120 Z"
-        region={getRegionStats('obliques')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Biceps */}
-      <BodyRegion
-        d="M 40 85 L 35 95 L 32 110 L 35 125 L 42 120 L 45 100 Z"
-        region={getRegionStats('biceps')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 160 85 L 165 95 L 168 110 L 165 125 L 158 120 L 155 100 Z"
-        region={getRegionStats('biceps')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Forearms */}
-      <BodyRegion
-        d="M 32 125 L 28 145 L 25 165 L 28 175 L 35 172 L 38 150 L 40 130 Z"
-        region={getRegionStats('forearms')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 168 125 L 172 145 L 175 165 L 172 175 L 165 172 L 162 150 L 160 130 Z"
-        region={getRegionStats('forearms')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Quads */}
-      <BodyRegion
-        d="M 75 175 L 72 200 L 70 235 L 72 260 L 80 262 L 85 240 L 88 210 L 90 180 Z"
-        region={getRegionStats('quads')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 125 175 L 128 200 L 130 235 L 128 260 L 120 262 L 115 240 L 112 210 L 110 180 Z"
-        region={getRegionStats('quads')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Adductors */}
-      <BodyRegion
-        d="M 90 180 L 92 210 L 95 240 L 100 245 L 105 240 L 108 210 L 110 180 Z"
-        region={getRegionStats('adductors')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Lower Legs */}
-      <rect x="70" y="262" width="12" height="60" rx="4" fill="rgb(39, 39, 42)" className="opacity-40" />
-      <rect x="118" y="262" width="12" height="60" rx="4" fill="rgb(39, 39, 42)" className="opacity-40" />
-
-      {/* Feet */}
-      <ellipse cx="76" cy="330" rx="8" ry="12" fill="rgb(39, 39, 42)" className="opacity-40" />
-      <ellipse cx="124" cy="330" rx="8" ry="12" fill="rgb(39, 39, 42)" className="opacity-40" />
-    </svg>
-  );
-}
-
-/**
- * Back Body SVG Component
- */
-function BackBodySVG({
-  regions,
-  onRegionClick,
-}: {
-  regions: RegionStats[];
-  onRegionClick: (region: RegionStats) => void;
-}): React.ReactElement {
-  const getRegionStats = (region: BodyRegion) => regions.find((r) => r.region === region);
-
-  return (
-    <svg
-      viewBox="0 0 200 400"
-      className="w-full max-w-xs md:max-w-sm"
-      style={{ filter: 'drop-shadow(0 0 20px rgba(34, 211, 238, 0.1))' }}
-    >
-      {/* Head */}
-      <ellipse cx="100" cy="25" rx="18" ry="22" fill="rgb(39, 39, 42)" className="opacity-40" />
-
-      {/* Neck */}
-      <rect x="92" y="42" width="16" height="18" fill="rgb(39, 39, 42)" className="opacity-40" />
-
-      {/* Shoulders (Rear) */}
-      <BodyRegion
-        d="M 50 60 Q 45 55 42 62 L 38 75 Q 40 82 48 85 L 65 80 L 70 70 Z"
-        region={getRegionStats('shoulders')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 150 60 Q 155 55 158 62 L 162 75 Q 160 82 152 85 L 135 80 L 130 70 Z"
-        region={getRegionStats('shoulders')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Upper Back (Lats & Traps) */}
-      <BodyRegion
-        d="M 70 60 L 65 70 L 60 85 L 62 105 L 70 120 L 100 125 L 130 120 L 138 105 L 140 85 L 135 70 L 130 60 Z"
-        region={getRegionStats('upperBack')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Lower Back */}
-      <BodyRegion
-        d="M 75 125 L 72 140 L 70 160 L 75 175 L 100 178 L 125 175 L 130 160 L 128 140 L 125 125 Z"
-        region={getRegionStats('lowerBack')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Triceps */}
-      <BodyRegion
-        d="M 40 85 L 35 95 L 32 110 L 35 125 L 42 120 L 45 100 Z"
-        region={getRegionStats('triceps')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 160 85 L 165 95 L 168 110 L 165 125 L 158 120 L 155 100 Z"
-        region={getRegionStats('triceps')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Forearms (Back) */}
-      <BodyRegion
-        d="M 32 125 L 28 145 L 25 165 L 28 175 L 35 172 L 38 150 L 40 130 Z"
-        region={getRegionStats('forearms')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 168 125 L 172 145 L 175 165 L 172 175 L 165 172 L 162 150 L 160 130 Z"
-        region={getRegionStats('forearms')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Glutes */}
-      <BodyRegion
-        d="M 75 178 L 72 195 L 70 210 L 75 220 L 85 222 L 90 210 L 92 188 Z"
-        region={getRegionStats('glutes')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 125 178 L 128 195 L 130 210 L 125 220 L 115 222 L 110 210 L 108 188 Z"
-        region={getRegionStats('glutes')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Hamstrings */}
-      <BodyRegion
-        d="M 72 220 L 70 240 L 68 260 L 72 275 L 82 277 L 88 255 L 90 230 Z"
-        region={getRegionStats('hamstrings')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 128 220 L 130 240 L 132 260 L 128 275 L 118 277 L 112 255 L 110 230 Z"
-        region={getRegionStats('hamstrings')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Calves */}
-      <BodyRegion
-        d="M 70 277 L 68 295 L 70 315 L 76 320 L 82 315 L 84 295 L 82 277 Z"
-        region={getRegionStats('calves')}
-        onRegionClick={onRegionClick}
-      />
-      <BodyRegion
-        d="M 130 277 L 132 295 L 130 315 L 124 320 L 118 315 L 116 295 L 118 277 Z"
-        region={getRegionStats('calves')}
-        onRegionClick={onRegionClick}
-      />
-
-      {/* Feet */}
-      <ellipse cx="76" cy="330" rx="8" ry="12" fill="rgb(39, 39, 42)" className="opacity-40" />
-      <ellipse cx="124" cy="330" rx="8" ry="12" fill="rgb(39, 39, 42)" className="opacity-40" />
-    </svg>
-  );
-}
-
-/**
- * Clickable Body Region Component
- */
-function BodyRegion({
-  d,
-  region,
-  onRegionClick,
-}: {
-  d: string;
-  region: RegionStats | undefined;
-  onRegionClick: (region: RegionStats) => void;
-}): React.ReactElement {
-  const [isHovered, setIsHovered] = useState(false);
-
-  if (!region) {
-    return <path d={d} fill="rgb(39, 39, 42)" className="opacity-40" />;
-  }
-
-  const fillColor = getHeatColor(region.percentage);
-  const glowFilter = getGlowFilter(region.percentage);
-
-  return (
-    <path
-      d={d}
-      fill={fillColor}
-      stroke={isHovered ? 'white' : 'rgb(24, 24, 27)'}
-      strokeWidth={isHovered ? '2' : '1'}
-      className="cursor-pointer transition-all duration-300"
-      style={{
-        filter: isHovered ? `${glowFilter} brightness(1.2)` : glowFilter,
-        opacity: isHovered ? 0.95 : 0.85,
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={() => onRegionClick(region)}
-    />
   );
 }
 

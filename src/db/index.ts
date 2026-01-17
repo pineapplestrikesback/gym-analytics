@@ -9,6 +9,7 @@ export {
   createDefaultProfile,
   DEFAULT_MUSCLE_GOAL,
   DEFAULT_TOTAL_GOAL,
+  type Gender,
   type Profile,
   type Workout,
   type WorkoutSet,
