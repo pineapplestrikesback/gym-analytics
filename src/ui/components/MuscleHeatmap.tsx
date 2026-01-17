@@ -5,7 +5,6 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
-import type { VolumeStatItem } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
 import Model from 'react-body-highlighter';
 import type { IMuscleStats } from 'react-body-highlighter';
@@ -108,30 +107,6 @@ const REGION_TO_LIBRARY_MUSCLES: Record<BodyRegion, { front: string[]; back: str
 };
 
 /**
- * Anchor points for leader lines (SVG coordinates relative to body container)
- * These represent where lines should connect to on the split body view
- */
-const REGION_ANCHORS: Record<BodyRegion, { x: number; y: number; side: 'front' | 'back' }> = {
-  // Front muscles (left side)
-  chest: { x: 25, y: 35, side: 'front' },
-  shoulders: { x: 20, y: 25, side: 'front' },
-  biceps: { x: 15, y: 40, side: 'front' },
-  forearms: { x: 10, y: 55, side: 'front' },
-  abs: { x: 25, y: 50, side: 'front' },
-  obliques: { x: 20, y: 55, side: 'front' },
-  quads: { x: 25, y: 70, side: 'front' },
-  adductors: { x: 25, y: 75, side: 'front' },
-
-  // Back muscles (right side)
-  upperBack: { x: 75, y: 35, side: 'back' },
-  lowerBack: { x: 75, y: 50, side: 'back' },
-  triceps: { x: 85, y: 40, side: 'back' },
-  hamstrings: { x: 75, y: 70, side: 'back' },
-  glutes: { x: 75, y: 60, side: 'back' },
-  calves: { x: 75, y: 85, side: 'back' },
-};
-
-/**
  * Fixed card positions to prevent overlap
  * Positions are percentages relative to container
  */
@@ -223,7 +198,7 @@ function useIsMobile(): boolean {
 export function MuscleHeatmap({
   profileId,
   daysBack = 7,
-}: MuscleHeatmapProps): React.ReactElement {
+}: MuscleHeatmapProps): JSX.Element {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
   const [visibleMuscles, setVisibleMuscles] = useState<Set<ScientificMuscle>>(
     new Set(Object.keys(MUSCLE_ABBREVIATIONS) as ScientificMuscle[])
@@ -232,7 +207,7 @@ export function MuscleHeatmap({
 
   // Map stats to muscle-level data
   const muscleStats = useMemo((): MuscleStats[] => {
-    return stats.map((s) => ({
+    return stats.map((s: { name: string; volume: number; goal: number; percentage: number }) => ({
       muscle: s.name as ScientificMuscle,
       volume: s.volume,
       goal: s.goal,
@@ -242,7 +217,7 @@ export function MuscleHeatmap({
 
   // Create stats map for quick lookup
   const statsMap = useMemo(() => {
-    return new Map(muscleStats.map((s) => [s.muscle, s]));
+    return new Map(muscleStats.map((s: MuscleStats) => [s.muscle, s]));
   }, [muscleStats]);
 
   // Calculate regional stats for body highlighting
@@ -266,7 +241,7 @@ export function MuscleHeatmap({
 
   // Toggle individual muscle visibility
   const toggleMuscle = (muscle: ScientificMuscle): void => {
-    setVisibleMuscles((prev) => {
+    setVisibleMuscles((prev: Set<ScientificMuscle>) => {
       const next = new Set(prev);
       if (next.has(muscle)) {
         next.delete(muscle);
@@ -284,7 +259,7 @@ export function MuscleHeatmap({
       setVisibleMuscles(new Set());
     } else {
       // Some hidden, show all
-      setVisibleMuscles(new Set(muscleStats.map((s) => s.muscle)));
+      setVisibleMuscles(new Set(muscleStats.map((s: MuscleStats) => s.muscle)));
     }
   };
 
@@ -293,7 +268,7 @@ export function MuscleHeatmap({
     const muscles = REGION_TO_MUSCLES[region] as ScientificMuscle[];
     const allVisible = muscles.every((m) => visibleMuscles.has(m));
 
-    setVisibleMuscles((prev) => {
+    setVisibleMuscles((prev: Set<ScientificMuscle>) => {
       const next = new Set(prev);
       if (allVisible) {
         // Hide all muscles in region
@@ -375,7 +350,7 @@ function MobileSplitView({
   regionStats: Map<BodyRegion, { percentage: number }>;
   onMuscleClick: (muscle: ScientificMuscle) => void;
   onRegionClick: (region: BodyRegion) => void;
-}): React.ReactElement {
+}): JSX.Element {
   return (
     <div className="relative">
       {/* Split Body Container */}
@@ -478,7 +453,7 @@ function DesktopSplitView({
   regionStats: Map<BodyRegion, { percentage: number }>;
   onMuscleClick: (muscle: ScientificMuscle) => void;
   onRegionClick: (region: BodyRegion) => void;
-}): React.ReactElement {
+}): JSX.Element {
   return (
     <div className="relative">
       {/* Split Body Container */}
@@ -583,25 +558,21 @@ function MuscleCard({
   volume: number;
   goal: number;
   percentage: number;
-  position: { top: string; left?: string; right?: string };
+  position: { top: string; left?: string; right?: string; anchorX: number; anchorY: number };
   onClick: () => void;
   desktop?: boolean;
-}): React.ReactElement {
+}): JSX.Element {
   // Determine color based on percentage
-  let bgColor: string;
   let borderColor: string;
   let textColor: string;
 
   if (percentage >= 100) {
-    bgColor = 'rgba(34, 197, 94, 0.15)'; // green
     borderColor = 'rgb(34, 197, 94)';
     textColor = 'text-green-400';
   } else if (percentage >= 50) {
-    bgColor = 'rgba(245, 158, 11, 0.15)'; // orange
     borderColor = 'rgb(245, 158, 11)';
     textColor = 'text-orange-400';
   } else {
-    bgColor = 'rgba(239, 68, 68, 0.15)'; // red
     borderColor = 'rgb(239, 68, 68)';
     textColor = 'text-red-400';
   }
@@ -651,10 +622,10 @@ function SplitBodyHighlighter({
   type: 'anterior' | 'posterior';
   regionStats: Map<BodyRegion, { percentage: number }>;
   onRegionClick: (region: BodyRegion) => void;
-}): React.ReactElement {
+}): JSX.Element {
   // Create exercise data for the library
   const exerciseData = useMemo(() => {
-    const data: any[] = [];
+    const data: Array<{ name: BodyRegion; muscles: string[]; frequency: number }> = [];
     const viewKey = type === 'anterior' ? 'front' : 'back';
 
     regionStats.forEach((stats, region) => {
