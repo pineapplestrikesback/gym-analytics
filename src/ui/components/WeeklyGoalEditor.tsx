@@ -4,43 +4,8 @@
  */
 
 import { useState } from 'react';
-import type { ScientificMuscle } from '@core/taxonomy';
+import { UI_MUSCLE_GROUPS, type ScientificMuscle } from '@core/taxonomy';
 import { DEFAULT_MUSCLE_GOAL, DEFAULT_TOTAL_GOAL } from '@db/schema';
-
-interface MuscleGroup {
-  name: string;
-  muscles: ScientificMuscle[];
-}
-
-const MUSCLE_GROUPS: MuscleGroup[] = [
-  {
-    name: 'Back',
-    muscles: ['Latissimus Dorsi', 'Middle Trapezius', 'Upper Trapezius', 'Erector Spinae'],
-  },
-  {
-    name: 'Chest',
-    muscles: ['Pectoralis Major (Sternal)', 'Pectoralis Major (Clavicular)'],
-  },
-  {
-    name: 'Shoulders',
-    muscles: ['Anterior Deltoid', 'Lateral Deltoid', 'Posterior Deltoid'],
-  },
-  {
-    name: 'Arms',
-    muscles: ['Biceps Brachii', 'Triceps (Lateral/Medial)', 'Triceps (Long Head)'],
-  },
-  {
-    name: 'Legs',
-    muscles: [
-      'Quadriceps (Vasti)',
-      'Quadriceps (RF)',
-      'Gluteus Maximus',
-      'Hamstrings',
-      'Gastrocnemius',
-      'Soleus',
-    ],
-  },
-];
 
 interface WeeklyGoalEditorProps {
   goals: Partial<Record<ScientificMuscle, number>>;
@@ -58,7 +23,7 @@ export function WeeklyGoalEditor({
   const [localGoals, setLocalGoals] = useState(goals);
   const [localTotalGoal, setLocalTotalGoal] = useState(totalGoal);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(MUSCLE_GROUPS.map((g) => g.name))
+    new Set(UI_MUSCLE_GROUPS.map((g) => g.name))
   );
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -110,7 +75,7 @@ export function WeeklyGoalEditor({
     setLocalTotalGoal(DEFAULT_TOTAL_GOAL);
   };
 
-  const getGroupTotal = (muscles: ScientificMuscle[]): number => {
+  const getGroupTotal = (muscles: readonly ScientificMuscle[]): number => {
     return muscles.reduce(
       (sum, muscle) => sum + (localGoals[muscle] ?? DEFAULT_MUSCLE_GOAL),
       0
@@ -145,7 +110,7 @@ export function WeeklyGoalEditor({
 
       {/* Muscle Groups */}
       <div className="space-y-2">
-        {MUSCLE_GROUPS.map((group) => {
+        {UI_MUSCLE_GROUPS.map((group) => {
           const isExpanded = expandedGroups.has(group.name);
           const groupTotal = getGroupTotal(group.muscles);
 
