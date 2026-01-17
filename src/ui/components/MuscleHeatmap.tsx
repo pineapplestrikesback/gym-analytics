@@ -3,11 +3,11 @@
  * Split anatomical view showing front/back simultaneously with floating muscle cards
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
 import Model from 'react-body-highlighter';
-import type { IMuscleStats } from 'react-body-highlighter';
+import type { IMuscleStats, IExerciseData, Muscle } from 'react-body-highlighter';
 
 interface MuscleHeatmapProps {
   profileId: string | null;
@@ -198,7 +198,7 @@ function useIsMobile(): boolean {
 export function MuscleHeatmap({
   profileId,
   daysBack = 7,
-}: MuscleHeatmapProps): JSX.Element {
+}: MuscleHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
   const [visibleMuscles, setVisibleMuscles] = useState<Set<ScientificMuscle>>(
     new Set(Object.keys(MUSCLE_ABBREVIATIONS) as ScientificMuscle[])
@@ -350,7 +350,7 @@ function MobileSplitView({
   regionStats: Map<BodyRegion, { percentage: number }>;
   onMuscleClick: (muscle: ScientificMuscle) => void;
   onRegionClick: (region: BodyRegion) => void;
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div className="relative">
       {/* Split Body Container */}
@@ -453,7 +453,7 @@ function DesktopSplitView({
   regionStats: Map<BodyRegion, { percentage: number }>;
   onMuscleClick: (muscle: ScientificMuscle) => void;
   onRegionClick: (region: BodyRegion) => void;
-}): JSX.Element {
+}): React.ReactElement {
   return (
     <div className="relative">
       {/* Split Body Container */}
@@ -561,7 +561,7 @@ function MuscleCard({
   position: { top: string; left?: string; right?: string; anchorX: number; anchorY: number };
   onClick: () => void;
   desktop?: boolean;
-}): JSX.Element {
+}): React.ReactElement {
   // Determine color based on percentage
   let borderColor: string;
   let textColor: string;
@@ -622,10 +622,10 @@ function SplitBodyHighlighter({
   type: 'anterior' | 'posterior';
   regionStats: Map<BodyRegion, { percentage: number }>;
   onRegionClick: (region: BodyRegion) => void;
-}): JSX.Element {
+}): React.ReactElement {
   // Create exercise data for the library
-  const exerciseData = useMemo(() => {
-    const data: Array<{ name: BodyRegion; muscles: string[]; frequency: number }> = [];
+  const exerciseData = useMemo((): IExerciseData[] => {
+    const data: IExerciseData[] = [];
     const viewKey = type === 'anterior' ? 'front' : 'back';
 
     regionStats.forEach((stats, region) => {
@@ -637,7 +637,7 @@ function SplitBodyHighlighter({
         muscles.forEach((muscle) => {
           data.push({
             name: region,
-            muscles: [muscle],
+            muscles: [muscle as Muscle],
             frequency,
           });
         });
