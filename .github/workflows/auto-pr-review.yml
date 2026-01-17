@@ -24,7 +24,18 @@ jobs:
        github.event.comment.user.type != 'Bot')
 
     steps:
-      - uses: drillan/claude-pr-reviewer@v1
+      - uses: actions/checkout@v4
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          anthropic_model: claude-sonnet-4-5-20250929
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: claude-sonnet-4-5-20250929
+          custom_instructions: |
+            You are reviewing a pull request. Focus on:
+            - Code quality and best practices
+            - Potential bugs or security issues
+            - Test coverage
+            - TypeScript type safety
+            Keep feedback constructive and actionable.
