@@ -12,6 +12,17 @@ Your job is to read `PROJECT_SPEC.md` and dispatch tasks to the Agents.
 * "DB Agent, create the workout schema." -> (Activates `database-guardian`)
 * "UI Agent, build the dashboard." -> (Activates `ui-builder`)
 * "QA Agent, test the import." -> (Activates `qa-inspector`)
+* "Review Agent, address the PR feedback." -> (Activates `pr-reviewer`)
+
+### PR Review Automation
+When an agent pushes code to a PR, the session can be resumed automatically when reviewers leave feedback:
+
+1. **Agent creates PR** -> Session registered with webhook handler
+2. **Reviewer comments** -> GitHub Action triggers webhook
+3. **Webhook handler** -> Resumes agent with review context
+4. **Agent fixes code** -> Pushes updated commits
+
+See `scripts/pr-review-agent/` for setup instructions.
 
 ## 🛠️ MCP & Tool Configuration
 The following tools are available to specific agents:
