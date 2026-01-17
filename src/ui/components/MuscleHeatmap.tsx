@@ -4,16 +4,17 @@
  * with floating tooltip cards
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
 import type { VolumeStatItem } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { BodyHighlighter } from './anatomy/BodyHighlighter';
-import { X } from 'lucide-react';
+import { X, Eye, EyeOff } from 'lucide-react';
 
 interface MuscleHeatmapProps {
   profileId: string | null;
   daysBack?: number;
+  view: 'front' | 'back';
 }
 
 /**
@@ -79,7 +80,10 @@ const REGION_NAMES: Record<BodyRegion, string> = {
  * Positioning strategy for each region
  * Defines where floating cards should appear relative to the body diagram
  */
-const REGION_POSITIONS: Record<BodyRegion, { top?: string; bottom?: string; left?: string; right?: string }> = {
+const REGION_POSITIONS: Record<
+  BodyRegion,
+  { top?: string; bottom?: string; left?: string; right?: string }
+> = {
   shoulders: { top: '5%', left: '50%', right: 'auto' },
   chest: { top: '20%', right: '2%' },
   upperBack: { top: '20%', left: '2%' },
@@ -93,6 +97,29 @@ const REGION_POSITIONS: Record<BodyRegion, { top?: string; bottom?: string; left
   hamstrings: { bottom: '25%', right: '2%' },
   glutes: { top: '45%', right: '2%' },
   calves: { bottom: '5%', right: '2%' },
+  adductors: { bottom: '30%', left: '50%', right: 'auto' },
+};
+
+/**
+ * Mobile-specific positioning - more compact for showing all tooltips
+ */
+const MOBILE_REGION_POSITIONS: Record<
+  BodyRegion,
+  { top?: string; bottom?: string; left?: string; right?: string }
+> = {
+  shoulders: { top: '2%', left: '50%', right: 'auto' },
+  chest: { top: '12%', right: '1%' },
+  upperBack: { top: '12%', left: '1%' },
+  lowerBack: { top: '32%', left: '1%' },
+  biceps: { top: '22%', right: '1%' },
+  triceps: { top: '22%', left: '1%' },
+  forearms: { top: '38%', right: '1%' },
+  abs: { top: '28%', right: '1%' },
+  obliques: { top: '38%', left: '50%', right: 'auto' },
+  quads: { bottom: '22%', left: '1%' },
+  hamstrings: { bottom: '22%', right: '1%' },
+  glutes: { top: '50%', right: '1%' },
+  calves: { bottom: '2%', right: '1%' },
   adductors: { bottom: '30%', left: '50%', right: 'auto' },
 };
 
@@ -117,10 +144,34 @@ function getHeatColor(percentage: number): string {
   return 'rgb(6, 182, 212)'; // bright cyan (goal met/exceeded)
 }
 
-export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): React.ReactElement {
+/**
+ * Hook to detect mobile viewport
+ */
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+}
+
+export function MuscleHeatmap({
+  profileId,
+  daysBack = 7,
+  view,
+}: MuscleHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
   const [visibleRegions, setVisibleRegions] = useState<Set<BodyRegion>>(new Set());
-  const [view, setView] = useState<'front' | 'back'>('front');
+  const [showAllLabels, setShowAllLabels] = useState(false);
+  const isMobile = useIsMobile();
 
   // Calculate regional stats
   const regionStats = useMemo(() => {
@@ -154,7 +205,12 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
     return new Map(regionStats.map((r) => [r.region, r]));
   }, [regionStats]);
 
-  const handleRegionClick = (region: RegionStats) => {
+  const handleRegionClick = (region: RegionStats): void => {
+    // In "show all" mode, don't toggle individual regions
+    if (showAllLabels) {
+      return;
+    }
+
     setVisibleRegions((prev) => {
       const next = new Set(prev);
       if (next.has(region.region)) {
@@ -164,6 +220,19 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
       }
       return next;
     });
+  };
+
+  // Handle "show all / hide all" toggle
+  const handleShowAllToggle = (showAll: boolean): void => {
+    setShowAllLabels(showAll);
+    if (showAll) {
+      // Show all regions
+      const allRegions = new Set(regionStats.map((r) => r.region));
+      setVisibleRegions(allRegions);
+    } else {
+      // Hide all regions
+      setVisibleRegions(new Set());
+    }
   };
 
   const closeCard = (region: BodyRegion) => {
@@ -192,34 +261,36 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
 
   return (
     <div className="relative">
-      {/* View Toggle */}
-      <div className="mb-6 flex justify-center">
+      {/* Show All / Hide All Toggle */}
+      <div className="mb-6 flex justify-center gap-3">
         <div className="inline-flex rounded-lg bg-primary-800 p-1">
           <button
-            onClick={() => setView('front')}
-            className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-              view === 'front'
+            onClick={() => handleShowAllToggle(false)}
+            className={`px-4 py-2 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
+              !showAllLabels
                 ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/50'
                 : 'text-primary-300 hover:text-white'
             }`}
           >
-            Front
+            <Eye size={14} />
+            <span>Tap Muscles</span>
           </button>
           <button
-            onClick={() => setView('back')}
-            className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-              view === 'back'
+            onClick={() => handleShowAllToggle(true)}
+            className={`px-4 py-2 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
+              showAllLabels
                 ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/50'
                 : 'text-primary-300 hover:text-white'
             }`}
           >
-            Back
+            <EyeOff size={14} />
+            <span>Show All</span>
           </button>
         </div>
       </div>
 
       {/* Body Diagram with Floating Cards Container */}
-      <div className="relative min-h-[600px] md:min-h-[700px]">
+      <div className="relative min-h-[400px] md:min-h-[500px]">
         <BodyHighlighter
           view={view}
           regionStats={regionStatsMap}
@@ -227,21 +298,35 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
           getHeatColor={getHeatColor}
         />
 
-        {/* Floating Tooltip Cards */}
-        {regionStats.map((region) =>
-          visibleRegions.has(region.region) ? (
-            <FloatingMuscleCard
-              key={region.region}
-              region={region}
-              position={REGION_POSITIONS[region.region]}
-              onClose={() => closeCard(region.region)}
-            />
-          ) : null
-        )}
+        {/* Floating Tooltip Cards - Only show when NOT in "Show All" mode */}
+        {!showAllLabels &&
+          regionStats.map((region) =>
+            visibleRegions.has(region.region) ? (
+              isMobile ? (
+                <MobileMuscleTooltip
+                  key={region.region}
+                  region={region}
+                  position={MOBILE_REGION_POSITIONS[region.region]}
+                  onClose={() => closeCard(region.region)}
+                  showCloseButton={true}
+                />
+              ) : (
+                <FloatingMuscleCard
+                  key={region.region}
+                  region={region}
+                  position={REGION_POSITIONS[region.region]}
+                  onClose={() => closeCard(region.region)}
+                />
+              )
+            ) : null
+          )}
       </div>
 
+      {/* Show All Mode - Compact list of all muscles */}
+      {showAllLabels && <AllMusclesList regionStats={regionStats} getHeatColor={getHeatColor} />}
+
       {/* Heat Map Legend */}
-      <div className="mt-8 flex items-center justify-center gap-2 text-xs">
+      <div className="mt-6 flex items-center justify-center gap-2 text-xs">
         <span className="text-primary-300">Low</span>
         <div className="flex h-3 w-48 overflow-hidden rounded-full">
           <div className="flex-1 bg-gradient-to-r from-primary-500 via-accent-orange via-amber-400 to-accent-cyan" />
@@ -249,6 +334,144 @@ export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): 
         <span className="text-primary-300">Goal Met</span>
       </div>
     </div>
+  );
+}
+
+/**
+ * Mobile Muscle Tooltip Component
+ * Ultra-compact text-only tooltip for mobile devices
+ * Shows individual muscles with color-coded progress indicators
+ */
+function MobileMuscleTooltip({
+  region,
+  position,
+  onClose,
+  showCloseButton,
+}: {
+  region: RegionStats;
+  position: { top?: string; bottom?: string; left?: string; right?: string };
+  onClose: () => void;
+  showCloseButton: boolean;
+}): React.ReactElement {
+  // Calculate transform for centered cards
+  const needsTransform = position.left === '50%';
+  const transform = needsTransform ? 'translateX(-50%)' : undefined;
+
+  /**
+   * Get color classes based on muscle progress percentage
+   */
+  const getProgressColors = (percentage: number) => {
+    if (percentage >= 100) {
+      return {
+        bg: 'bg-cyan-500/10',
+        text: 'text-cyan-400',
+        border: 'border-cyan-500/30',
+        dot: 'bg-cyan-400',
+      };
+    } else if (percentage >= 50) {
+      return {
+        bg: 'bg-amber-500/10',
+        text: 'text-amber-400',
+        border: 'border-amber-500/30',
+        dot: 'bg-amber-400',
+      };
+    } else {
+      return {
+        bg: 'bg-red-500/10',
+        text: 'text-red-400',
+        border: 'border-red-500/30',
+        dot: 'bg-red-400',
+      };
+    }
+  };
+
+  /**
+   * Abbreviate long muscle names for mobile
+   */
+  const abbreviateMuscle = (name: ScientificMuscle): string => {
+    return name
+      .replace('Pectoralis Major', 'Pec Major')
+      .replace('(Sternal)', '(Stern)')
+      .replace('(Clavicular)', '(Clav)')
+      .replace('Triceps (Lateral/Medial)', 'Tri (Lat/Med)')
+      .replace('Triceps (Long Head)', 'Tri (Long)')
+      .replace('Quadriceps', 'Quads')
+      .replace('Latissimus Dorsi', 'Lats')
+      .replace('Gastrocnemius', 'Gastroc');
+  };
+
+  return (
+    <>
+      <div
+        className="absolute z-50 animate-mobileTooltipIn"
+        style={{
+          top: position.top,
+          bottom: position.bottom,
+          left: position.left,
+          right: position.right,
+          transform,
+        }}
+      >
+        <div className="min-w-[140px] max-w-[180px] bg-zinc-900/95 backdrop-blur-sm rounded-md border border-zinc-700/50 shadow-xl shadow-black/30 overflow-hidden">
+          {/* Muscle List - No header, just individual muscles */}
+          <div className="p-2 space-y-1">
+            {region.muscles.map((muscle) => {
+              const colors = getProgressColors(muscle.percentage);
+              return (
+                <div
+                  key={muscle.name}
+                  className={`flex items-center justify-between gap-1.5 px-2 py-1 rounded ${colors.bg} border ${colors.border}`}
+                >
+                  {/* Muscle name */}
+                  <span
+                    className={`text-[10px] leading-tight ${colors.text} font-medium truncate flex-1`}
+                  >
+                    {abbreviateMuscle(muscle.name as ScientificMuscle)}
+                  </span>
+
+                  {/* Volume/Goal */}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className={`text-[10px] font-bold ${colors.text} tabular-nums`}>
+                      {muscle.volume.toFixed(1)}
+                    </span>
+                    <span className="text-[9px] text-zinc-500">/</span>
+                    <span className="text-[9px] text-zinc-500 tabular-nums">{muscle.goal}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Close button (only when in tap mode) */}
+          {showCloseButton && (
+            <button
+              onClick={onClose}
+              className="absolute -top-1 -right-1 p-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors shadow-lg"
+              aria-label="Close"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* CSS for animations */}
+      <style>{`
+        @keyframes mobileTooltipIn {
+          from {
+            opacity: 0;
+            transform: ${transform || 'none'} scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: ${transform || 'none'} scale(1);
+          }
+        }
+        .animate-mobileTooltipIn {
+          animation: mobileTooltipIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+    </>
   );
 }
 
@@ -286,9 +509,13 @@ function FloatingMuscleCard({
           <div className="relative px-4 pt-4 pb-3 border-b border-zinc-800">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <h3 className="text-base md:text-lg font-bold text-white truncate">{region.name}</h3>
+                <h3 className="text-base md:text-lg font-bold text-white truncate">
+                  {region.name}
+                </h3>
                 <p className="text-xs md:text-sm text-zinc-400 mt-0.5">
-                  <span className="font-semibold text-orange-500">{region.totalVolume.toFixed(1)}</span>
+                  <span className="font-semibold text-orange-500">
+                    {region.totalVolume.toFixed(1)}
+                  </span>
                   <span className="mx-1">/</span>
                   <span>{region.totalGoal}</span>
                   <span className="ml-1">sets</span>
@@ -387,5 +614,108 @@ function FloatingMuscleCard({
         }
       `}</style>
     </>
+  );
+}
+
+/**
+ * All Muscles List Component
+ * Displays all muscles in a clean, scrollable grid format for "Show All" mode
+ */
+function AllMusclesList({
+  regionStats,
+  getHeatColor,
+}: {
+  regionStats: RegionStats[];
+  getHeatColor: (percentage: number) => string;
+}): React.ReactElement {
+  /**
+   * Get color classes based on muscle progress percentage
+   */
+  const getProgressColors = (
+    percentage: number
+  ): {
+    bg: string;
+    text: string;
+    border: string;
+  } => {
+    if (percentage >= 100) {
+      return {
+        bg: 'bg-cyan-500/10',
+        text: 'text-cyan-400',
+        border: 'border-cyan-500/30',
+      };
+    } else if (percentage >= 50) {
+      return {
+        bg: 'bg-amber-500/10',
+        text: 'text-amber-400',
+        border: 'border-amber-500/30',
+      };
+    } else {
+      return {
+        bg: 'bg-red-500/10',
+        text: 'text-red-400',
+        border: 'border-red-500/30',
+      };
+    }
+  };
+
+  // Flatten all muscles from all regions
+  const allMuscles = regionStats.flatMap((region) =>
+    region.muscles.map((muscle) => ({
+      ...muscle,
+      regionName: region.name,
+    }))
+  );
+
+  // Suppress unused parameter warning - getHeatColor reserved for future use
+  void getHeatColor;
+
+  return (
+    <div className="mt-4 rounded-lg bg-primary-800/50 p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+        {allMuscles.map((muscle) => {
+          const colors = getProgressColors(muscle.percentage);
+          return (
+            <div
+              key={muscle.name}
+              className={`${colors.bg} ${colors.border} border rounded-md px-2 py-1.5`}
+            >
+              <div className="flex items-center justify-between gap-1">
+                <span
+                  className={`text-[10px] sm:text-xs ${colors.text} font-medium truncate flex-1`}
+                >
+                  {muscle.name
+                    .replace('Pectoralis Major', 'Pec')
+                    .replace('(Sternal)', '(St)')
+                    .replace('(Clavicular)', '(Cl)')
+                    .replace('Triceps (Lateral/Medial)', 'Tri (L/M)')
+                    .replace('Triceps (Long Head)', 'Tri (Long)')
+                    .replace('Quadriceps', 'Quads')
+                    .replace('Latissimus Dorsi', 'Lats')
+                    .replace('Gastrocnemius', 'Gastroc')
+                    .replace('Rectus Abdominis', 'Abs')}
+                </span>
+                <span className={`text-[10px] sm:text-xs font-bold ${colors.text} tabular-nums`}>
+                  {muscle.volume.toFixed(1)}
+                </span>
+              </div>
+              {/* Mini progress bar */}
+              <div className="mt-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${
+                    muscle.percentage >= 100
+                      ? 'bg-cyan-400'
+                      : muscle.percentage >= 50
+                        ? 'bg-amber-400'
+                        : 'bg-red-400'
+                  }`}
+                  style={{ width: `${Math.min(muscle.percentage, 100)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
