@@ -25,6 +25,8 @@ interface ExerciseSearchModalProps {
   onClose: () => void;
   /** If provided, we're editing an existing mapping */
   editingMapping?: ExerciseMapping | null;
+  /** If provided, start on scratch tab with values copied from this exercise */
+  prefillFromExercise?: string | null;
 }
 
 // Get muscle values for a canonical exercise
@@ -42,9 +44,21 @@ export function ExerciseSearchModal({
   unmappedExercise,
   onClose,
   editingMapping = null,
+  prefillFromExercise = null,
 }: ExerciseSearchModalProps): React.ReactElement {
-  // Determine initial tab based on editing mode
+  // Get initial muscle values if prefilling from an exercise
+  const getInitialMuscleValues = (): Partial<Record<ScientificMuscle, number>> => {
+    if (editingMapping?.customMuscleValues) return editingMapping.customMuscleValues;
+    if (prefillFromExercise) {
+      const values = getCanonicalMuscleValues(prefillFromExercise);
+      if (values) return values;
+    }
+    return {};
+  };
+
+  // Determine initial tab based on editing mode or prefill
   const getInitialTab = (): TabType => {
+    if (prefillFromExercise) return 'scratch';
     if (editingMapping?.customMuscleValues) return 'scratch';
     if (editingMapping?.canonicalExerciseId) return 'search';
     return 'search';
@@ -57,9 +71,11 @@ export function ExerciseSearchModal({
     editingMapping?.canonicalExerciseId ?? null
   );
   const [muscleValues, setMuscleValues] = useState<Partial<Record<ScientificMuscle, number>>>(
-    editingMapping?.customMuscleValues ?? {}
+    getInitialMuscleValues
   );
-  const [copiedFromExercise, setCopiedFromExercise] = useState<string | null>(null);
+  const [copiedFromExercise, setCopiedFromExercise] = useState<string | null>(
+    prefillFromExercise ?? null
+  );
 
   const { createMapping, isCreating } = useCreateExerciseMapping();
   const { updateMapping, isUpdating } = useUpdateExerciseMapping();
