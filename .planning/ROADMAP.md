@@ -45,7 +45,7 @@ Plans:
 **Goal**: Establish color semantics and design tokens that make the body readable
 **Depends on**: Phase 1
 **Requirements**: VIS-01, VIS-02, VIS-03
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -56,8 +56,8 @@ Plans:
 
 Plans:
 
-- [ ] 02-01: Define color scale and design tokens
-- [ ] 02-02: Create reusable color utility functions
+- [ ] 02-01-PLAN.md - Create color scale utility with Oklab interpolation and CSS design tokens
+- [ ] 02-02-PLAN.md - Refactor existing components to use centralized color system
 
 ### Phase 3: Heatmap Core
 
@@ -201,7 +201,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | Phase                   | Plans Complete | Status      | Completed  |
 | ----------------------- | -------------- | ----------- | ---------- |
 | 1. Component Foundation | 1/1            | Complete    | 2026-01-18 |
-| 2. Visual System        | 0/2            | Not started | -          |
+| 2. Visual System        | 0/2            | Ready       | -          |
 | 3. Heatmap Core         | 0/2            | Not started | -          |
 | 4. Front/Back Toggle    | 0/2            | Not started | -          |
 | 5. Muscle List          | 0/3            | Not started | -          |
