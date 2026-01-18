@@ -6,6 +6,7 @@
 import React, { useMemo, useState, useEffect, useId } from 'react';
 import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
+import { getVolumeColor, getNoTargetColor } from '@core/color-scale';
 import Model from 'react-body-highlighter';
 import type { IMuscleStats, IExerciseData, Muscle } from 'react-body-highlighter';
 
@@ -74,15 +75,15 @@ const MUSCLE_ABBREVIATIONS: Record<ScientificMuscle, string> = {
   'Forearm Extensors': 'Forearm Ex',
   'Rectus Abdominis': 'Abs',
   'Hip Flexors': 'Hip Flex',
-  'Obliques': 'Obliques',
+  Obliques: 'Obliques',
   'Quadriceps (Vasti)': 'Quads (V)',
   'Quadriceps (RF)': 'Quads (RF)',
-  'Hamstrings': 'Hams',
+  Hamstrings: 'Hams',
   'Gluteus Maximus': 'Glute Max',
   'Gluteus Medius': 'Glute Med',
-  'Gastrocnemius': 'Gastroc',
-  'Soleus': 'Soleus',
-  'Adductors': 'Adductors',
+  Gastrocnemius: 'Gastroc',
+  Soleus: 'Soleus',
+  Adductors: 'Adductors',
 };
 
 /**
@@ -109,7 +110,7 @@ const REGION_TO_LIBRARY_MUSCLES: Record<BodyRegion, { front: string[]; back: str
  * Leader line offset constants (based on card dimensions)
  */
 const LEADER_LINE_OFFSETS = {
-  mobile: { x: 9, y: 3 },    // Offset for 60px wide cards
+  mobile: { x: 9, y: 3 }, // Offset for 60px wide cards
   desktop: { x: 7, y: 2.5 }, // Offset for 80px wide cards
 } as const;
 
@@ -129,10 +130,10 @@ const CARD_POSITIONS: Record<
   'Forearm Flexors': { top: '39%', left: '2%', anchorX: 10, anchorY: 55 },
   'Rectus Abdominis': { top: '33%', left: '2%', anchorX: 25, anchorY: 50 },
   'Hip Flexors': { top: '45%', left: '2%', anchorX: 25, anchorY: 58 },
-  'Obliques': { top: '51%', left: '2%', anchorX: 20, anchorY: 55 },
+  Obliques: { top: '51%', left: '2%', anchorX: 20, anchorY: 55 },
   'Quadriceps (Vasti)': { top: '63%', left: '2%', anchorX: 25, anchorY: 70 },
   'Quadriceps (RF)': { top: '69%', left: '2%', anchorX: 25, anchorY: 73 },
-  'Adductors': { top: '75%', left: '2%', anchorX: 25, anchorY: 75 },
+  Adductors: { top: '75%', left: '2%', anchorX: 25, anchorY: 75 },
 
   // Back - Right column
   'Lateral Deltoid': { top: '2%', right: '2%', anchorX: 75, anchorY: 25 },
@@ -147,9 +148,9 @@ const CARD_POSITIONS: Record<
   'Forearm Extensors': { top: '57%', right: '2%', anchorX: 90, anchorY: 55 },
   'Gluteus Maximus': { top: '63%', right: '2%', anchorX: 75, anchorY: 60 },
   'Gluteus Medius': { top: '69%', right: '2%', anchorX: 75, anchorY: 57 },
-  'Hamstrings': { top: '75%', right: '2%', anchorX: 75, anchorY: 70 },
-  'Gastrocnemius': { top: '81%', right: '2%', anchorX: 75, anchorY: 85 },
-  'Soleus': { top: '87%', right: '2%', anchorX: 75, anchorY: 88 },
+  Hamstrings: { top: '75%', right: '2%', anchorX: 75, anchorY: 70 },
+  Gastrocnemius: { top: '81%', right: '2%', anchorX: 75, anchorY: 85 },
+  Soleus: { top: '87%', right: '2%', anchorX: 75, anchorY: 88 },
 };
 
 interface MuscleStats {
@@ -157,21 +158,6 @@ interface MuscleStats {
   volume: number;
   goal: number;
   percentage: number;
-}
-
-/**
- * Map a percentage (0–100) to a heatmap color.
- *
- * @param percentage - Percentage value between 0 and 100 used to select the color
- * @returns A CSS `rgb(...)` color string corresponding to the input percentage
- */
-function getHeatColor(percentage: number): string {
-  if (percentage === 0) return 'rgb(63, 63, 70)'; // primary-500 (dim gray)
-  if (percentage < 25) return 'rgb(120, 53, 15)'; // dark orange
-  if (percentage < 50) return 'rgb(249, 115, 22)'; // orange
-  if (percentage < 75) return 'rgb(251, 191, 36)'; // amber
-  if (percentage < 100) return 'rgb(34, 211, 238)'; // cyan
-  return 'rgb(6, 182, 212)'; // bright cyan (goal met/exceeded)
 }
 
 /**
@@ -218,10 +204,7 @@ function useIsMobile(): boolean {
  * @param daysBack - Number of days to aggregate stats over (default: 7)
  * @returns A React element containing the split anterior/posterior muscle heatmap with controls
  */
-export function MuscleHeatmap({
-  profileId,
-  daysBack = 7,
-}: MuscleHeatmapProps): React.ReactElement {
+export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
   const [visibleMuscles, setVisibleMuscles] = useState<Set<ScientificMuscle>>(new Set());
   const isMobile = useIsMobile();
@@ -399,9 +382,7 @@ function SplitView({
               if (!pos) return null;
 
               // Calculate card center position using named constants
-              const cardLeft = pos.left
-                ? parseFloat(pos.left)
-                : 100 - parseFloat(pos.right || '0');
+              const cardLeft = pos.left ? parseFloat(pos.left) : 100 - parseFloat(pos.right || '0');
               const cardTop = parseFloat(pos.top);
               const cardX = cardLeft + offsets.x;
               const cardY = cardTop + offsets.y;
@@ -500,20 +481,18 @@ function MuscleCard({
   onClick: () => void;
   desktop?: boolean;
 }): React.ReactElement {
-  // Determine color based on percentage
-  let borderColor: string;
-  let textColor: string;
+  // Use centralized color scale for border color
+  const borderColor = getVolumeColor(percentage);
 
-  if (percentage >= 100) {
-    borderColor = 'rgb(34, 197, 94)';
-    textColor = 'text-green-400';
-  } else if (percentage >= 50) {
-    borderColor = 'rgb(245, 158, 11)';
-    textColor = 'text-orange-400';
-  } else {
-    borderColor = 'rgb(239, 68, 68)';
-    textColor = 'text-red-400';
-  }
+  // Text color follows VIS-01: no red below 100%, green at goal
+  const textColor =
+    percentage >= 100
+      ? 'text-status-success' // Green - goal met
+      : percentage >= 75
+        ? 'text-amber-400' // Approaching goal
+        : percentage >= 50
+          ? 'text-teal-400' // Halfway
+          : 'text-blue-400'; // Low volume (cool color, not red)
 
   const abbreviation = MUSCLE_ABBREVIATIONS[muscle] || muscle;
 
@@ -536,11 +515,17 @@ function MuscleCard({
     >
       <div className="text-left">
         {/* Muscle Name */}
-        <div className={`${textColor} font-bold leading-tight`} style={{ fontSize: desktop ? '11px' : '10px' }}>
+        <div
+          className={`${textColor} font-bold leading-tight`}
+          style={{ fontSize: desktop ? '11px' : '10px' }}
+        >
           {abbreviation}
         </div>
         {/* Volume / Goal - consistent formatting */}
-        <div className="text-white/80 font-medium mt-0.5" style={{ fontSize: desktop ? '10px' : '9px' }}>
+        <div
+          className="text-white/80 font-medium mt-0.5"
+          style={{ fontSize: desktop ? '10px' : '9px' }}
+        >
           {volume.toFixed(1)} / {goal.toFixed(0)}
         </div>
       </div>
@@ -592,14 +577,14 @@ function SplitBodyHighlighter({
     return data;
   }, [type, regionStats]);
 
-  // Color array for highlighting
+  // Color array for highlighting - uses centralized color scale
   const highlightedColors = useMemo(() => {
     return [
-      getHeatColor(12.5),  // 0-25%
-      getHeatColor(37.5),  // 25-50%
-      getHeatColor(62.5),  // 50-75%
-      getHeatColor(87.5),  // 75-100%
-      getHeatColor(100),   // 100%+
+      getVolumeColor(12.5), // frequency 1: 0-25%
+      getVolumeColor(37.5), // frequency 2: 25-50%
+      getVolumeColor(62.5), // frequency 3: 50-75%
+      getVolumeColor(87.5), // frequency 4: 75-100%
+      getVolumeColor(100), // frequency 5: 100%+
     ];
   }, []);
 
@@ -624,7 +609,7 @@ function SplitBodyHighlighter({
           type={type}
           data={exerciseData}
           highlightedColors={highlightedColors}
-          bodyColor="rgb(63, 63, 70)"
+          bodyColor={getNoTargetColor()}
           onClick={handleMuscleClick}
           style={{
             width: '100%',
