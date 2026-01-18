@@ -77,36 +77,36 @@
 
 ## Traceability
 
-| Requirement | Phase | Status  |
-| ----------- | ----- | ------- |
-| NAV-01      | 6     | Pending |
-| NAV-02      | 6     | Pending |
-| NAV-03      | 6     | Pending |
-| HEAT-01     | 3     | Pending |
-| HEAT-02     | 3     | Pending |
-| HEAT-03     | 3     | Pending |
-| HEAT-04     | 8     | Pending |
-| LIST-01     | 5     | Pending |
-| LIST-02     | 5     | Pending |
-| LIST-03     | 5     | Pending |
-| LIST-04     | 5     | Pending |
-| LIST-05     | 8     | Pending |
-| DETAIL-01   | 7     | Pending |
-| DETAIL-02   | 7     | Pending |
-| DETAIL-03   | 7     | Pending |
-| VIS-01      | 2     | Pending |
-| VIS-02      | 2     | Pending |
-| VIS-03      | 2     | Pending |
-| TOGGLE-01   | 4     | Pending |
-| TOGGLE-02   | 4     | Pending |
-| TOGGLE-03   | 4     | Pending |
-| ARCH-01     | 1     | Pending |
-| ARCH-02     | 1     | Pending |
-| GROUP-01    | 9     | Pending |
-| GROUP-02    | 9     | Pending |
-| GROUP-03    | 9     | Pending |
-| GROUP-04    | 9     | Pending |
-| GROUP-05    | 9     | Pending |
+| Requirement | Phase | Status   |
+| ----------- | ----- | -------- |
+| NAV-01      | 6     | Pending  |
+| NAV-02      | 6     | Pending  |
+| NAV-03      | 6     | Pending  |
+| HEAT-01     | 3     | Pending  |
+| HEAT-02     | 3     | Pending  |
+| HEAT-03     | 3     | Pending  |
+| HEAT-04     | 8     | Pending  |
+| LIST-01     | 5     | Pending  |
+| LIST-02     | 5     | Pending  |
+| LIST-03     | 5     | Pending  |
+| LIST-04     | 5     | Pending  |
+| LIST-05     | 8     | Pending  |
+| DETAIL-01   | 7     | Pending  |
+| DETAIL-02   | 7     | Pending  |
+| DETAIL-03   | 7     | Pending  |
+| VIS-01      | 2     | Pending  |
+| VIS-02      | 2     | Pending  |
+| VIS-03      | 2     | Pending  |
+| TOGGLE-01   | 4     | Pending  |
+| TOGGLE-02   | 4     | Pending  |
+| TOGGLE-03   | 4     | Pending  |
+| ARCH-01     | 1     | Complete |
+| ARCH-02     | 1     | Complete |
+| GROUP-01    | 9     | Pending  |
+| GROUP-02    | 9     | Pending  |
+| GROUP-03    | 9     | Pending  |
+| GROUP-04    | 9     | Pending  |
+| GROUP-05    | 9     | Pending  |
 
 **Coverage:**
 
