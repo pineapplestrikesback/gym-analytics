@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 ## Current Position
 
 Phase: 3 of 9 (Heatmap Core)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-19 - Completed 03-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-01-19 - Completed 03-02-PLAN.md
 
-Progress: [===.......] 30%
+Progress: [====......] 40%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: 4 min
-- Total execution time: 14 min
+- Total execution time: 18 min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [===.......] 30%
 | ----------------------- | ----- | ----- | -------- |
 | 01-component-foundation | 1     | 4 min | 4 min    |
 | 02-visual-system        | 2     | 7 min | 3.5 min  |
-| 03-heatmap-core         | 1     | 3 min | 3 min    |
+| 03-heatmap-core         | 2     | 7 min | 3.5 min  |
 
 **Recent Trend:**
 
-- Last 5 plans: 4 min, 4 min, 3 min, 3 min
+- Last 5 plans: 4 min, 4 min, 3 min, 3 min, 4 min
 - Trend: Stable
 
 _Updated after each plan completion_
@@ -56,6 +56,9 @@ Recent decisions affecting current work:
 - Dynamic progress bar colors for goal feedback (VIS-02-PROGRESS)
 - Removed all floating UI (cards, lines, toggle) for clean body-only visualization (HEAT-01)
 - Used calc(100vh-220px) for viewport-filling layout (HEAT-LAYOUT)
+- Reuse REGION_TO_MUSCLES mappings in mobile component (HEAT-02-MAPPINGS)
+- 18rem maxWidth for mobile body model (HEAT-02-SIZING)
+- Use @media (hover: hover) for touch vs mouse device handling (HEAT-02-TOUCH)
 
 ### Patterns Established
 
@@ -67,6 +70,8 @@ Recent decisions affecting current work:
 - **VIS-03:** CSS design tokens in @theme for surface/text/status colors
 - **VIS-04:** Components import getVolumeColor from @core/color-scale (no local color logic)
 - **HEAT-01:** Color carries the primary signal for training distribution (no floating UI over body)
+- **MOBILE-01:** Mobile body visualization uses same color scale as desktop via @core/color-scale
+- **MOBILE-02:** Touch feedback via :active pseudo-class, not hover
 
 ### Pending Todos
 
@@ -74,10 +79,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Plan 03-01 complete, ready for plan 03-02.
+None - Phase 3 complete, ready for Phase 4.
 
 ## Session Continuity
 
-Last session: 2026-01-18T23:44:25Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-01-18T23:44:50Z
+Stopped at: Completed 03-02-PLAN.md (Phase 3 complete)
 Resume file: None
