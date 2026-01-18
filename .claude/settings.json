@@ -1,20 +1,18 @@
-{ 
-  "enabledPlugins": {
-    "ralph-loop@claude-plugins-official": true
-  }
-},
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bun x gh-setup-hooks",
-            "timeout": 120
-          }
-        ]
-      }
-    ]
-  }
-}
+   "enabledPlugins": {
+     "ralph-loop@claude-plugins-official": true
+},
+   "hooks": {
+     "SessionStart": [
+       {
+         "hooks": [
+           {
+             "type": "command",
+             "command": "bun x gh-setup-hooks",
+             "timeout": 120
+           }
+         ]
+       }
+     ]
+   }
+ }
