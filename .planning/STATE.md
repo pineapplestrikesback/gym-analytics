@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 ## Current Position
 
 Phase: 3 of 9 (Heatmap Core)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-01-18 - Phase 2 verified and complete
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-19 - Completed 03-01-PLAN.md
 
-Progress: [==........] 22%
+Progress: [===.......] 30%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 4 min
-- Total execution time: 11 min
+- Total execution time: 14 min
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [==........] 22%
 | ----------------------- | ----- | ----- | -------- |
 | 01-component-foundation | 1     | 4 min | 4 min    |
 | 02-visual-system        | 2     | 7 min | 3.5 min  |
+| 03-heatmap-core         | 1     | 3 min | 3 min    |
 
 **Recent Trend:**
 
-- Last 5 plans: 4 min, 4 min, 3 min
+- Last 5 plans: 4 min, 4 min, 3 min, 3 min
 - Trend: Stable
 
 _Updated after each plan completion_
@@ -53,6 +54,8 @@ Recent decisions affecting current work:
 - Purple-to-green-to-red gradient with green at 100% goal (VIS-COLOR-03)
 - Text colors use cool-to-warm progression without red below 100% (VIS-01-TEXT)
 - Dynamic progress bar colors for goal feedback (VIS-02-PROGRESS)
+- Removed all floating UI (cards, lines, toggle) for clean body-only visualization (HEAT-01)
+- Used calc(100vh-220px) for viewport-filling layout (HEAT-LAYOUT)
 
 ### Patterns Established
 
@@ -63,6 +66,7 @@ Recent decisions affecting current work:
 - **VIS-02:** oklch() color space for perceptually uniform gradients
 - **VIS-03:** CSS design tokens in @theme for surface/text/status colors
 - **VIS-04:** Components import getVolumeColor from @core/color-scale (no local color logic)
+- **HEAT-01:** Color carries the primary signal for training distribution (no floating UI over body)
 
 ### Pending Todos
 
@@ -70,10 +74,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Phase 2 verified and complete, ready for Phase 3.
+None - Plan 03-01 complete, ready for plan 03-02.
 
 ## Session Continuity
 
-Last session: 2026-01-18T23:55:00Z
-Stopped at: Phase 2 verified and complete
+Last session: 2026-01-18T23:44:25Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
