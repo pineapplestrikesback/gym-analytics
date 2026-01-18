@@ -56,15 +56,15 @@ Plans:
 
 Plans:
 
-- [ ] 02-01-PLAN.md - Create color scale utility with Oklab interpolation and CSS design tokens
-- [ ] 02-02-PLAN.md - Refactor existing components to use centralized color system
+- [x] 02-01-PLAN.md - Create color scale utility with Oklab interpolation and CSS design tokens
+- [x] 02-02-PLAN.md - Refactor existing components to use centralized color system
 
 ### Phase 3: Heatmap Core
 
 **Goal**: Body diagram fills screen and shows training distribution through color
 **Depends on**: Phase 2
 **Requirements**: HEAT-01, HEAT-02, HEAT-03
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -75,8 +75,8 @@ Plans:
 
 Plans:
 
-- [ ] 03-01: Refactor SVG rendering for full-screen body display
-- [ ] 03-02: Implement volume-to-color mapping on muscle regions
+- [ ] 03-01-PLAN.md - Simplify desktop heatmap by removing floating cards, leader lines, and toggle button
+- [ ] 03-02-PLAN.md - Implement mobile body visualization with volume-based coloring
 
 ### Phase 4: Front/Back Toggle
 
@@ -213,4 +213,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-18 (Phase 2 complete)_
+_Last updated: 2026-01-19 (Phase 3 planned)_
