@@ -213,8 +213,8 @@ function SplitView({
 }): React.ReactElement {
   return (
     <div className="relative">
-      {/* Split Body Container */}
-      <div className="relative flex justify-center min-h-[500px] md:min-h-[600px]">
+      {/* Split Body Container - fills available viewport space */}
+      <div className="relative flex justify-center items-center min-h-[calc(100vh-220px)] md:min-h-[calc(100vh-200px)]">
         {/* Front Half - Left Side */}
         <div className="w-1/2 overflow-hidden relative">
           <div className="relative -right-1/2">
@@ -295,7 +295,7 @@ function SplitBodyHighlighter({
           bodyColor={getNoTargetColor()}
           style={{
             width: '100%',
-            maxWidth: '20rem',
+            maxWidth: '24rem',
           }}
           svgStyle={{
             filter: 'drop-shadow(0 0 15px rgba(245, 158, 11, 0.1))',
