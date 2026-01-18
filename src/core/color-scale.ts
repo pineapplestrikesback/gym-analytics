@@ -62,13 +62,29 @@ function interpolateOklch(
 }
 
 /**
+ * First and last color stops for boundary handling.
+ * These are guaranteed to exist since COLOR_STOPS is a non-empty constant array.
+ */
+const FIRST_STOP: ColorStop = COLOR_STOPS[0] as ColorStop;
+const LAST_STOP: ColorStop = COLOR_STOPS[COLOR_STOPS.length - 1] as ColorStop;
+
+/**
  * Find the color at a given position in the gradient
  */
 function getColorAtPosition(position: number): { L: number; C: number; H: number } {
-  // Find surrounding stops
+  // Handle edge cases for first and last stops
+  if (position <= FIRST_STOP.position) {
+    return { L: FIRST_STOP.L, C: FIRST_STOP.C, H: FIRST_STOP.H };
+  }
+
+  if (position >= LAST_STOP.position) {
+    return { L: LAST_STOP.L, C: LAST_STOP.C, H: LAST_STOP.H };
+  }
+
+  // Find surrounding stops and interpolate
   for (let i = 0; i < COLOR_STOPS.length - 1; i++) {
-    const stop1 = COLOR_STOPS[i];
-    const stop2 = COLOR_STOPS[i + 1];
+    const stop1 = COLOR_STOPS[i] as ColorStop;
+    const stop2 = COLOR_STOPS[i + 1] as ColorStop;
 
     if (position >= stop1.position && position <= stop2.position) {
       const t = (position - stop1.position) / (stop2.position - stop1.position);
@@ -76,9 +92,8 @@ function getColorAtPosition(position: number): { L: number; C: number; H: number
     }
   }
 
-  // Should not reach here due to clamping, but return last stop if needed
-  const lastStop = COLOR_STOPS[COLOR_STOPS.length - 1];
-  return { L: lastStop.L, C: lastStop.C, H: lastStop.H };
+  // Fallback (should never reach here due to edge case handling above)
+  return { L: LAST_STOP.L, C: LAST_STOP.C, H: LAST_STOP.H };
 }
 
 /**

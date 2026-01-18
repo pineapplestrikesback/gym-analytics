@@ -7,10 +7,19 @@ import { getVolumeColor, getVolumeOpacity, getNoTargetColor } from '../color-sca
 function parseOklch(color: string): { L: number; C: number; H: number } {
   const match = color.match(/oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)/);
   if (!match) throw new Error(`Invalid oklch color: ${color}`);
+
+  const L = match[1];
+  const C = match[2];
+  const H = match[3];
+
+  if (L === undefined || C === undefined || H === undefined) {
+    throw new Error(`Invalid oklch color: ${color}`);
+  }
+
   return {
-    L: parseFloat(match[1]),
-    C: parseFloat(match[2]),
-    H: parseFloat(match[3]),
+    L: parseFloat(L),
+    C: parseFloat(C),
+    H: parseFloat(H),
   };
 }
 
