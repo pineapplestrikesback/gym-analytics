@@ -19,8 +19,15 @@ export function TotalVolumeCard(): React.ReactElement {
   const percentage = totalGoal > 0 ? Math.min((totalVolume / totalGoal) * 100, 100) : 0;
   const volumeDisplay = totalVolume % 1 === 0 ? totalVolume : totalVolume.toFixed(1);
 
+  // Progress bar color reflects status (VIS-02: consistent accent, VIS-01: green at goal)
+  const getProgressBarClass = (): string => {
+    if (percentage >= 100) return 'bg-status-success'; // Green - goal met
+    if (percentage >= 75) return 'bg-amber-500'; // Approaching goal
+    return 'bg-teal-500'; // In progress
+  };
+
   return (
-    <div className="rounded-lg bg-primary-700 p-6">
+    <div className="rounded-lg bg-surface-raised p-6">
       <h3 className="mb-2 text-lg font-semibold text-white">Total Weekly Volume</h3>
 
       <div className="mb-2 flex items-baseline gap-2">
@@ -31,7 +38,7 @@ export function TotalVolumeCard(): React.ReactElement {
       {/* Progress Bar */}
       <div className="mb-2 h-3 overflow-hidden rounded-full bg-primary-800">
         <div
-          className="h-full rounded-full bg-accent-orange transition-all duration-500"
+          className={`h-full rounded-full transition-all duration-500 ${getProgressBarClass()}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
