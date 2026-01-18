@@ -94,9 +94,9 @@
 | DETAIL-01   | 7     | Pending  |
 | DETAIL-02   | 7     | Pending  |
 | DETAIL-03   | 7     | Pending  |
-| VIS-01      | 2     | Pending  |
-| VIS-02      | 2     | Pending  |
-| VIS-03      | 2     | Pending  |
+| VIS-01      | 2     | Complete |
+| VIS-02      | 2     | Complete |
+| VIS-03      | 2     | Complete |
 | TOGGLE-01   | 4     | Pending  |
 | TOGGLE-02   | 4     | Pending  |
 | TOGGLE-03   | 4     | Pending  |
@@ -117,4 +117,4 @@
 ---
 
 _Requirements defined: 2026-01-18_
-_Last updated: 2026-01-18 after roadmap creation_
+_Last updated: 2026-01-18 after Phase 2 completion_

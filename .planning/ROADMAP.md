@@ -12,7 +12,7 @@ This roadmap transforms the muscle heatmap from a label-cluttered display into a
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Component Foundation** - Establish mobile component architecture and data hooks
-- [ ] **Phase 2: Visual System** - Define color scale and design tokens
+- [x] **Phase 2: Visual System** - Define color scale and design tokens
 - [ ] **Phase 3: Heatmap Core** - Body visualization with volume-based coloring
 - [ ] **Phase 4: Front/Back Toggle** - Rotation-style view switching
 - [ ] **Phase 5: Muscle List** - Grouped list with progress bars
@@ -201,7 +201,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | Phase                   | Plans Complete | Status      | Completed  |
 | ----------------------- | -------------- | ----------- | ---------- |
 | 1. Component Foundation | 1/1            | Complete    | 2026-01-18 |
-| 2. Visual System        | 0/2            | Ready       | -          |
+| 2. Visual System        | 2/2            | Complete    | 2026-01-18 |
 | 3. Heatmap Core         | 0/2            | Not started | -          |
 | 4. Front/Back Toggle    | 0/2            | Not started | -          |
 | 5. Muscle List          | 0/3            | Not started | -          |
@@ -213,4 +213,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-18_
+_Last updated: 2026-01-18 (Phase 2 complete)_
