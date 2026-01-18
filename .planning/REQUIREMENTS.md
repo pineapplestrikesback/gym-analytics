@@ -13,9 +13,9 @@
 
 ### Heatmap
 
-- [ ] **HEAT-01**: Body fills screen without floating labels
-- [ ] **HEAT-02**: Each muscle region shows color based on weekly volume
-- [ ] **HEAT-03**: Color scale uses warm progression (not red as neutral)
+- [x] **HEAT-01**: Body fills screen without floating labels
+- [x] **HEAT-02**: Each muscle region shows color based on weekly volume
+- [x] **HEAT-03**: Color scale uses warm progression (not red as neutral)
 - [ ] **HEAT-04**: Tapping a muscle opens detail pop-up
 
 ### Muscle List
@@ -82,9 +82,9 @@
 | NAV-01      | 6     | Pending  |
 | NAV-02      | 6     | Pending  |
 | NAV-03      | 6     | Pending  |
-| HEAT-01     | 3     | Pending  |
-| HEAT-02     | 3     | Pending  |
-| HEAT-03     | 3     | Pending  |
+| HEAT-01     | 3     | Complete |
+| HEAT-02     | 3     | Complete |
+| HEAT-03     | 3     | Complete |
 | HEAT-04     | 8     | Pending  |
 | LIST-01     | 5     | Pending  |
 | LIST-02     | 5     | Pending  |
@@ -117,4 +117,4 @@
 ---
 
 _Requirements defined: 2026-01-18_
-_Last updated: 2026-01-18 after Phase 2 completion_
+_Last updated: 2026-01-19 after Phase 3 completion_

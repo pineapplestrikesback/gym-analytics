@@ -13,7 +13,7 @@ This roadmap transforms the muscle heatmap from a label-cluttered display into a
 
 - [x] **Phase 1: Component Foundation** - Establish mobile component architecture and data hooks
 - [x] **Phase 2: Visual System** - Define color scale and design tokens
-- [ ] **Phase 3: Heatmap Core** - Body visualization with volume-based coloring
+- [x] **Phase 3: Heatmap Core** - Body visualization with volume-based coloring
 - [ ] **Phase 4: Front/Back Toggle** - Rotation-style view switching
 - [ ] **Phase 5: Muscle List** - Grouped list with progress bars
 - [ ] **Phase 6: Carousel Navigation** - Swipeable two-slide interface
@@ -75,8 +75,8 @@ Plans:
 
 Plans:
 
-- [ ] 03-01-PLAN.md - Simplify desktop heatmap by removing floating cards, leader lines, and toggle button
-- [ ] 03-02-PLAN.md - Implement mobile body visualization with volume-based coloring
+- [x] 03-01-PLAN.md - Simplify desktop heatmap by removing floating cards, leader lines, and toggle button
+- [x] 03-02-PLAN.md - Implement mobile body visualization with volume-based coloring
 
 ### Phase 4: Front/Back Toggle
 
@@ -202,7 +202,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | ----------------------- | -------------- | ----------- | ---------- |
 | 1. Component Foundation | 1/1            | Complete    | 2026-01-18 |
 | 2. Visual System        | 2/2            | Complete    | 2026-01-18 |
-| 3. Heatmap Core         | 0/2            | Not started | -          |
+| 3. Heatmap Core         | 2/2            | Complete    | 2026-01-19 |
 | 4. Front/Back Toggle    | 0/2            | Not started | -          |
 | 5. Muscle List          | 0/3            | Not started | -          |
 | 6. Carousel Navigation  | 0/2            | Not started | -          |
@@ -213,4 +213,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-19 (Phase 3 planned)_
+_Last updated: 2026-01-19 (Phase 3 complete)_
