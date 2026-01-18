@@ -173,7 +173,7 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
 
   // Render split body view
   return (
-    <div className="relative flex justify-center min-h-[400px]">
+    <div className="relative flex justify-center min-h-[420px] max-w-md mx-auto">
       {/* Front Half */}
       <div className="w-1/2 overflow-hidden">
         <div className="relative -right-1/2">
@@ -187,7 +187,7 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
         </div>
       </div>
       {/* Center Divider */}
-      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-orange-500/50" />
+      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-orange-500/60" />
     </div>
   );
 }
@@ -242,7 +242,7 @@ function MobileBodyHighlighter({
 
   return (
     <>
-      <div className="flex justify-center" data-mobile-heatmap={scopeId}>
+      <div className="flex justify-center py-2" data-mobile-heatmap={scopeId}>
         <Model
           type={type}
           data={exerciseData}
@@ -250,20 +250,34 @@ function MobileBodyHighlighter({
           bodyColor={getNoTargetColor()}
           style={{
             width: '100%',
-            maxWidth: '16rem',
+            maxWidth: '18rem',
           }}
           svgStyle={{
-            filter: 'drop-shadow(0 0 10px rgba(245, 158, 11, 0.1))',
+            filter: 'drop-shadow(0 0 12px rgba(245, 158, 11, 0.15))',
           }}
         />
       </div>
 
-      {/* Scoped hover styles using data-attribute */}
+      {/* Scoped styles for muscle regions - optimized for mobile touch */}
       <style>{`
         [data-mobile-heatmap="${scopeId}"] .rbh polygon {
-          transition: all 0.2s ease;
+          transition: all 0.15s ease;
           stroke: rgb(24, 24, 27);
           stroke-width: 0.5px;
+        }
+
+        [data-mobile-heatmap="${scopeId}"] .rbh polygon:active {
+          filter: brightness(1.3);
+          stroke: rgb(245, 158, 11);
+          stroke-width: 1px;
+        }
+
+        @media (hover: hover) {
+          [data-mobile-heatmap="${scopeId}"] .rbh polygon:hover {
+            filter: brightness(1.2);
+            stroke: rgba(245, 158, 11, 0.5);
+            stroke-width: 0.75px;
+          }
         }
       `}</style>
     </>
