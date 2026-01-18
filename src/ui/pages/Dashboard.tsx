@@ -7,15 +7,17 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCurrentProfile } from '../context/ProfileContext';
 import { useUnmappedExercises } from '@db/hooks/useUnmappedExercises';
+import { useIsMobileDevice } from '@ui/hooks/useIsMobileDevice';
 import { MuscleHeatmap } from '../components/MuscleHeatmap';
+import { MobileHeatmap } from '@ui/components/mobile/MobileHeatmap';
 import { TotalVolumeCard } from '../components/TotalVolumeCard';
 import { WeeklyActivityChart } from '../components/WeeklyActivityChart';
 
 export function Dashboard(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
   const { count: unmappedCount } = useUnmappedExercises(currentProfile?.id ?? null);
+  const isMobile = useIsMobileDevice();
   const [dismissedAlert, setDismissedAlert] = useState(false);
-  const [bodyView, setBodyView] = useState<'front' | 'back'>('front');
 
   if (isLoading) {
     return (
@@ -80,35 +82,17 @@ export function Dashboard(): React.ReactElement {
 
       {/* This Week Section */}
       <div className="rounded-lg bg-primary-700 p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">This Week</h3>
+        {isMobile ? (
+          <MobileHeatmap profileId={currentProfile.id} />
+        ) : (
+          <>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white">This Week</h3>
+            </div>
 
-          {/* Front/Back View Toggle */}
-          <div className="inline-flex rounded-lg bg-primary-800 p-1">
-            <button
-              onClick={() => setBodyView('front')}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                bodyView === 'front'
-                  ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/30'
-                  : 'text-primary-300 hover:text-white'
-              }`}
-            >
-              Front
-            </button>
-            <button
-              onClick={() => setBodyView('back')}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                bodyView === 'back'
-                  ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/30'
-                  : 'text-primary-300 hover:text-white'
-              }`}
-            >
-              Back
-            </button>
-          </div>
-        </div>
-
-        <MuscleHeatmap profileId={currentProfile.id} view={bodyView} />
+            <MuscleHeatmap profileId={currentProfile.id} />
+          </>
+        )}
       </div>
 
       {/* Total Volume */}
