@@ -4,8 +4,8 @@
  * Mobile-specific muscle volume visualization. Uses shared data hooks
  * from @db/hooks (ARCH-02 - no data duplication).
  *
- * Renders a split body view (front/back) with volume-based coloring
- * optimized for mobile screens.
+ * Renders a single body view (front/back) with 3D flip animation
+ * and session-persisted view state (TOGGLE-01, TOGGLE-03).
  */
 
 import { useMemo, useId } from 'react';
@@ -14,6 +14,7 @@ import type { IExerciseData, Muscle } from 'react-body-highlighter';
 import { useScientificMuscleVolume } from '@db/hooks';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { getVolumeColor, getNoTargetColor } from '@core/color-scale';
+import { useSessionState } from '@ui/hooks/use-session-state';
 
 interface MobileHeatmapProps {
   profileId: string | null;
@@ -100,10 +101,14 @@ interface MuscleStats {
 
 /**
  * Mobile heatmap component.
- * Displays a split body view with volume-based muscle coloring.
+ * Displays a single body view with 3D flip animation between front and back.
  */
 export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+  const [view, setView] = useSessionState<'front' | 'back'>(
+    'scientificmuscle_heatmap_view',
+    'front'
+  );
 
   // Map stats to muscle-level data
   const muscleStats = useMemo((): MuscleStats[] => {
@@ -171,23 +176,79 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
     );
   }
 
-  // Render split body view
+  // Toggle view handler
+  const toggleView = (): void => {
+    setView(view === 'front' ? 'back' : 'front');
+  };
+
+  // Render 3D flip body view
   return (
-    <div className="relative flex justify-center min-h-[420px] max-w-md mx-auto">
-      {/* Front Half */}
-      <div className="w-1/2 overflow-hidden">
-        <div className="relative -right-1/2">
-          <MobileBodyHighlighter type="anterior" regionStats={regionStats} />
+    <div className="relative min-h-[420px] max-w-md mx-auto">
+      {/* 3D Scene Container - perspective on parent */}
+      <div
+        className="relative mx-auto"
+        style={{
+          perspective: '1000px',
+          maxWidth: '18rem',
+        }}
+      >
+        {/* Rotating Card */}
+        <div
+          className="relative w-full"
+          style={{
+            transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            transformStyle: 'preserve-3d',
+            transform: view === 'back' ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          }}
+        >
+          {/* Front Face (Anterior) */}
+          <div
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+            }}
+          >
+            <MobileBodyHighlighter type="anterior" regionStats={regionStats} />
+          </div>
+
+          {/* Back Face (Posterior) - pre-rotated 180deg */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+          >
+            <MobileBodyHighlighter type="posterior" regionStats={regionStats} />
+          </div>
         </div>
       </div>
-      {/* Back Half */}
-      <div className="w-1/2 overflow-hidden">
-        <div className="relative -left-1/2">
-          <MobileBodyHighlighter type="posterior" regionStats={regionStats} />
-        </div>
-      </div>
-      {/* Center Divider */}
-      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-orange-500/60" />
+
+      {/* Subtle Toggle Button - TOGGLE-02: visually quiet */}
+      <button
+        onClick={toggleView}
+        className="absolute bottom-2 left-1/2 -translate-x-1/2 min-w-[44px] min-h-[44px] px-3 py-1.5 rounded-full text-xs text-primary-400 bg-primary-800/40 backdrop-blur-sm border border-primary-700/20 transition-colors duration-150 active:bg-primary-700/50"
+        aria-label={`Show ${view === 'front' ? 'back' : 'front'} view`}
+      >
+        <span className="flex items-center gap-1.5">
+          {/* Inline rotate icon SVG */}
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          <span>{view === 'front' ? 'Back' : 'Front'}</span>
+        </span>
+      </button>
     </div>
   );
 }
