@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 3 - Heatmap Core
+**Current focus:** Phase 4 - Front/Back Toggle
 
 ## Current Position
 
-Phase: 3 of 9 (Heatmap Core)
-Plan: 2 of 2 in current phase
+Phase: 4 of 9 (Front/Back Toggle)
+Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-01-19 - Completed 03-02-PLAN.md
+Last activity: 2026-01-19 - Completed 04-01-PLAN.md
 
-Progress: [====......] 40%
+Progress: [=====.....] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 4 min
-- Total execution time: 18 min
+- Total execution time: 20 min
 
 **By Phase:**
 
@@ -31,11 +31,12 @@ Progress: [====......] 40%
 | 01-component-foundation | 1     | 4 min | 4 min    |
 | 02-visual-system        | 2     | 7 min | 3.5 min  |
 | 03-heatmap-core         | 2     | 7 min | 3.5 min  |
+| 04-front-back-toggle    | 1     | 2 min | 2 min    |
 
 **Recent Trend:**
 
-- Last 5 plans: 4 min, 4 min, 3 min, 3 min, 4 min
-- Trend: Stable
+- Last 5 plans: 4 min, 3 min, 3 min, 4 min, 2 min
+- Trend: Stable (faster on smaller plans)
 
 _Updated after each plan completion_
 
@@ -59,6 +60,8 @@ Recent decisions affecting current work:
 - Reuse REGION_TO_MUSCLES mappings in mobile component (HEAT-02-MAPPINGS)
 - 18rem maxWidth for mobile body model (HEAT-02-SIZING)
 - Use @media (hover: hover) for touch vs mouse device handling (HEAT-02-TOUCH)
+- Combined Task 1 and Task 2 into single atomic commit for 3D flip (toggle button integral to container)
+- Button shows opposite view label ('Back'/'Front') for discoverability (TOGGLE-LABEL)
 
 ### Patterns Established
 
@@ -72,6 +75,11 @@ Recent decisions affecting current work:
 - **HEAT-01:** Color carries the primary signal for training distribution (no floating UI over body)
 - **MOBILE-01:** Mobile body visualization uses same color scale as desktop via @core/color-scale
 - **MOBILE-02:** Touch feedback via :active pseudo-class, not hover
+- **TOGGLE-01:** CSS rotateY(180deg) creates body rotation animation
+- **TOGGLE-02:** Low-contrast text-primary-400 and bg-primary-800/40 for subtle toggle
+- **TOGGLE-03:** useSessionState hook provides session-scoped persistence
+- **FLIP-01:** Perspective on parent container, preserve-3d on rotating element
+- **FLIP-02:** Both faces have backfaceVisibility hidden, back face pre-rotated 180deg
 
 ### Pending Todos
 
@@ -79,10 +87,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Phase 3 complete, ready for Phase 4.
+None - Phase 4 complete, ready for Phase 5.
 
 ## Session Continuity
 
-Last session: 2026-01-18T23:44:50Z
-Stopped at: Completed 03-02-PLAN.md (Phase 3 complete)
+Last session: 2026-01-19T01:44:34Z
+Stopped at: Completed 04-01-PLAN.md (Phase 4 complete)
 Resume file: None
