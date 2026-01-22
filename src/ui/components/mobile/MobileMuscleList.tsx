@@ -9,13 +9,21 @@
  */
 
 import { useState, useMemo } from 'react';
-import { UI_MUSCLE_GROUPS, type ScientificMuscle } from '@core/taxonomy';
+import { UI_MUSCLE_GROUPS } from '@core/taxonomy';
 import { useScientificMuscleVolume, type VolumeStatItem } from '@db/hooks/useVolumeStats';
 import { getVolumeColor } from '@core/color-scale';
 
 interface MobileMuscleListProps {
   profileId: string | null;
   daysBack?: number;
+}
+
+/**
+ * Format volume value for display.
+ * Shows whole numbers without decimals, fractions with one decimal place.
+ */
+function formatVolume(volume: number): string {
+  return volume % 1 === 0 ? volume.toString() : volume.toFixed(1);
 }
 
 /**
@@ -111,19 +119,37 @@ export function MobileMuscleList({
 
             {/* Group content - conditionally rendered */}
             {isExpanded && (
-              <div className="bg-primary-900 p-3 space-y-2">
-                {group.muscles.map((muscle) => (
-                  <div
-                    key={muscle}
-                    className="flex items-center justify-between py-2 px-3 rounded bg-primary-800/50"
-                  >
-                    {/* Muscle name */}
-                    <span className="text-sm text-primary-200">{muscle}</span>
+              <div className="bg-primary-900 p-3 space-y-1">
+                {group.muscles.map((muscle) => {
+                  const muscleStats = statsMap.get(muscle);
+                  const volume = muscleStats?.volume ?? 0;
+                  const percentage = muscleStats?.percentage ?? 0;
 
-                    {/* Placeholder for progress bar (Plan 02) */}
-                    <span className="text-xs text-primary-500">--</span>
-                  </div>
-                ))}
+                  return (
+                    <div key={muscle} className="flex items-center gap-3 py-2">
+                      {/* Muscle name - flex-1 for overflow handling */}
+                      <span className="flex-1 text-sm text-primary-200 truncate">
+                        {muscle}
+                      </span>
+
+                      {/* Progress bar container - fixed width for consistency */}
+                      <div className="w-24 h-2 overflow-hidden rounded-full bg-primary-800">
+                        <div
+                          className="h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${Math.min(percentage, 100)}%`,
+                            backgroundColor: getVolumeColor(percentage),
+                          }}
+                        />
+                      </div>
+
+                      {/* Numeric value - secondary emphasis (LIST-04) */}
+                      <span className="w-12 text-right text-xs text-primary-400 font-mono">
+                        {formatVolume(volume)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
