@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getVolumeColor, getVolumeOpacity, getNoTargetColor } from '../color-scale';
+import { getVolumeColor, getVolumeOpacity, getNoTargetColor } from '@core/color-scale';
 
 /**
  * Parse an oklch string into its components

@@ -92,6 +92,19 @@ function getFrequencyLevel(percentage: number): number {
   return 5;
 }
 
+/**
+ * Color array for muscle highlighting based on volume percentage.
+ * Uses centralized color scale from @core/color-scale.
+ */
+const HIGHLIGHTED_COLORS = [
+  getVolumeColor(12.5), // frequency 1: 0-25%
+  getVolumeColor(37.5), // frequency 2: 25-50%
+  getVolumeColor(62.5), // frequency 3: 50-75%
+  getVolumeColor(87.5), // frequency 4: 75-100%
+  getVolumeColor(100), // frequency 5: 100%+
+  'rgb(245, 158, 11)', // frequency 6: selected state (amber highlight)
+];
+
 interface MuscleStats {
   muscle: ScientificMuscle;
   volume: number;
@@ -306,17 +319,8 @@ function MobileBodyHighlighter({
     return data;
   }, [type, regionStats, selectedRegion]);
 
-  // Color array for highlighting - uses centralized color scale
-  const highlightedColors = useMemo(() => {
-    return [
-      getVolumeColor(12.5), // frequency 1: 0-25%
-      getVolumeColor(37.5), // frequency 2: 25-50%
-      getVolumeColor(62.5), // frequency 3: 50-75%
-      getVolumeColor(87.5), // frequency 4: 75-100%
-      getVolumeColor(100), // frequency 5: 100%+
-      'rgb(245, 158, 11)', // frequency 6: selected state (amber highlight)
-    ];
-  }, []);
+  // Use module-level constant for highlight colors
+  const highlightedColors = HIGHLIGHTED_COLORS;
 
   // Map library muscle slugs back to regions
   const muscleToRegion = useMemo(() => {

@@ -2,7 +2,8 @@
  * Mobile Muscle List Component
  *
  * Collapsible muscle group list for mobile viewing.
- * Displays 26 muscles organized into 7 anatomical groups.
+ * Displays 26 muscles organized into 6 anatomical groups (Forearms merged into Arms).
+ * Uses UI_MUSCLE_GROUPS from @core/taxonomy for group definitions.
  *
  * Pattern: useState<Set<string>> for expanded state (from WeeklyGoalEditor)
  * Touch: :active pseudo-class for feedback (MOBILE-02)
