@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 6 - Carousel Navigation (In Progress)
+**Current focus:** Phase 6 - Carousel Navigation (Complete)
 
 ## Current Position
 

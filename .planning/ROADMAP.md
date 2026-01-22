@@ -16,7 +16,7 @@ This roadmap transforms the muscle heatmap from a label-cluttered display into a
 - [x] **Phase 3: Heatmap Core** - Body visualization with volume-based coloring
 - [x] **Phase 4: Front/Back Toggle** - Rotation-style view switching
 - [x] **Phase 5: Muscle List** - Grouped list with progress bars
-- [ ] **Phase 6: Carousel Navigation** - Swipeable two-slide interface
+- [x] **Phase 6: Carousel Navigation** - Swipeable two-slide interface
 - [ ] **Phase 7: Detail Pop-up** - Muscle detail overlay component
 - [ ] **Phase 8: Tap Interactions** - Connect taps to pop-up system
 - [ ] **Phase 9: Custom Grouping** - User-configurable muscle groups in Settings
@@ -130,8 +130,8 @@ Plans:
 
 Plans:
 
-- [ ] 06-01-PLAN.md - Install embla-carousel-react, create carousel container with swipe and dot indicators
-- [ ] 06-02-PLAN.md - Integrate carousel into Dashboard and human-verify UX
+- [x] 06-01-PLAN.md - Install embla-carousel-react, create carousel container with swipe and dot indicators
+- [x] 06-02-PLAN.md - Integrate carousel into Dashboard and human-verify UX
 
 ### Phase 7: Detail Pop-up
 
@@ -203,7 +203,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 3. Heatmap Core         | 2/2            | Complete    | 2026-01-19 |
 | 4. Front/Back Toggle    | 1/1            | Complete    | 2026-01-19 |
 | 5. Muscle List          | 2/2            | Complete    | 2026-01-22 |
-| 6. Carousel Navigation  | 0/2            | Planned     | -          |
+| 6. Carousel Navigation  | 2/2            | Complete    | 2026-01-23 |
 | 7. Detail Pop-up        | 0/2            | Not started | -          |
 | 8. Tap Interactions     | 0/3            | Not started | -          |
 | 9. Custom Grouping      | 0/3            | Not started | -          |
@@ -211,4 +211,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-22 (Phase 6 planned)_
+_Last updated: 2026-01-23 (Phase 6 complete)_

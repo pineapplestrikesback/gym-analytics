@@ -79,9 +79,9 @@
 
 | Requirement | Phase | Status   |
 | ----------- | ----- | -------- |
-| NAV-01      | 6     | Pending  |
-| NAV-02      | 6     | Pending  |
-| NAV-03      | 6     | Pending  |
+| NAV-01      | 6     | Complete |
+| NAV-02      | 6     | Complete |
+| NAV-03      | 6     | Complete |
 | HEAT-01     | 3     | Complete |
 | HEAT-02     | 3     | Complete |
 | HEAT-03     | 3     | Complete |
@@ -117,4 +117,4 @@
 ---
 
 _Requirements defined: 2026-01-18_
-_Last updated: 2026-01-22 after Phase 5 completion_
+_Last updated: 2026-01-23 after Phase 6 completion_
