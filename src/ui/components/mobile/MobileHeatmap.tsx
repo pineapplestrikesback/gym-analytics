@@ -8,7 +8,7 @@
  * and session-persisted view state (TOGGLE-01, TOGGLE-03).
  */
 
-import { useMemo, useId } from 'react';
+import { useMemo, useId, useState, useEffect, useCallback } from 'react';
 import Model from 'react-body-highlighter';
 import type { IExerciseData, Muscle } from 'react-body-highlighter';
 import { useScientificMuscleVolume } from '@db/hooks';
@@ -109,6 +109,7 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
     'scientificmuscle_heatmap_view',
     'front'
   );
+  const [selectedRegion, setSelectedRegion] = useState<BodyRegion | null>(null);
 
   // Map stats to muscle-level data
   const muscleStats = useMemo((): MuscleStats[] => {
@@ -208,7 +209,12 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
               WebkitBackfaceVisibility: 'hidden',
             }}
           >
-            <MobileBodyHighlighter type="anterior" regionStats={regionStats} />
+            <MobileBodyHighlighter
+              type="anterior"
+              regionStats={regionStats}
+              selectedRegion={selectedRegion}
+              onRegionClick={setSelectedRegion}
+            />
           </div>
 
           {/* Back Face (Posterior) - pre-rotated 180deg */}
@@ -220,7 +226,12 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
               transform: 'rotateY(180deg)',
             }}
           >
-            <MobileBodyHighlighter type="posterior" regionStats={regionStats} />
+            <MobileBodyHighlighter
+              type="posterior"
+              regionStats={regionStats}
+              selectedRegion={selectedRegion}
+              onRegionClick={setSelectedRegion}
+            />
           </div>
         </div>
       </div>
@@ -259,9 +270,13 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
 function MobileBodyHighlighter({
   type,
   regionStats,
+  selectedRegion,
+  onRegionClick,
 }: {
   type: 'anterior' | 'posterior';
   regionStats: Map<BodyRegion, { percentage: number }>;
+  selectedRegion: BodyRegion | null;
+  onRegionClick: (region: BodyRegion | null) => void;
 }): React.ReactElement {
   // Generate unique ID for scoped styles
   const scopeId = useId().replace(/:/g, '');
@@ -275,7 +290,8 @@ function MobileBodyHighlighter({
       const muscles = REGION_TO_LIBRARY_MUSCLES[region][viewKey];
 
       if (muscles.length > 0) {
-        const frequency = getFrequencyLevel(stats.percentage);
+        // Use max frequency (6) for selected region to create persistent bilateral highlight
+        const frequency = selectedRegion === region ? 6 : getFrequencyLevel(stats.percentage);
 
         muscles.forEach((muscle) => {
           data.push({
@@ -288,7 +304,7 @@ function MobileBodyHighlighter({
     });
 
     return data;
-  }, [type, regionStats]);
+  }, [type, regionStats, selectedRegion]);
 
   // Color array for highlighting - uses centralized color scale
   const highlightedColors = useMemo(() => {
@@ -298,8 +314,51 @@ function MobileBodyHighlighter({
       getVolumeColor(62.5), // frequency 3: 50-75%
       getVolumeColor(87.5), // frequency 4: 75-100%
       getVolumeColor(100), // frequency 5: 100%+
+      'rgb(245, 158, 11)', // frequency 6: selected state (amber highlight)
     ];
   }, []);
+
+  // Map library muscle slugs back to regions
+  const muscleToRegion = useMemo(() => {
+    const map = new Map<string, BodyRegion>();
+    Object.entries(REGION_TO_LIBRARY_MUSCLES).forEach(([region, views]) => {
+      [...views.front, ...views.back].forEach((muscle) => {
+        map.set(muscle, region as BodyRegion);
+      });
+    });
+    return map;
+  }, []);
+
+  // Handle muscle clicks - find region and toggle selection
+  const handleMuscleClick = useCallback(
+    (event: MouseEvent) => {
+      const target = event.target as SVGElement;
+      if (target.tagName !== 'polygon') return;
+
+      // Get muscle ID from polygon's data attribute or class
+      const muscleId = target.getAttribute('id') || target.classList[0];
+      if (!muscleId) return;
+
+      // Map muscle to region
+      const region = muscleToRegion.get(muscleId);
+      if (!region) return;
+
+      // Toggle selection
+      onRegionClick(selectedRegion === region ? null : region);
+    },
+    [muscleToRegion, onRegionClick, selectedRegion]
+  );
+
+  // Attach click listener to SVG polygons
+  useEffect((): (() => void) | undefined => {
+    const container = document.querySelector(`[data-mobile-heatmap="${scopeId}"]`);
+    if (!container) return;
+
+    container.addEventListener('click', handleMuscleClick as EventListener);
+    return (): void => {
+      container.removeEventListener('click', handleMuscleClick as EventListener);
+    };
+  }, [scopeId, handleMuscleClick]);
 
   return (
     <>
@@ -325,12 +384,13 @@ function MobileBodyHighlighter({
           transition: all 0.15s ease;
           stroke: rgb(24, 24, 27);
           stroke-width: 0.5px;
+          cursor: pointer;
         }
 
         [data-mobile-heatmap="${scopeId}"] .rbh polygon:active {
-          filter: brightness(1.3);
-          stroke: rgb(245, 158, 11);
-          stroke-width: 1px;
+          filter: brightness(1.2);
+          stroke: rgba(245, 158, 11, 0.5);
+          stroke-width: 0.75px;
         }
 
         @media (hover: hover) {
