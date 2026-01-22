@@ -9,7 +9,7 @@ import { useCurrentProfile } from '../context/ProfileContext';
 import { useUnmappedExercises } from '@db/hooks/useUnmappedExercises';
 import { useIsMobileDevice } from '@ui/hooks/useIsMobileDevice';
 import { MuscleHeatmap } from '../components/MuscleHeatmap';
-import { MobileHeatmap } from '@ui/components/mobile/MobileHeatmap';
+import { MobileCarousel } from '@ui/components/mobile/MobileCarousel';
 import { TotalVolumeCard } from '../components/TotalVolumeCard';
 import { WeeklyActivityChart } from '../components/WeeklyActivityChart';
 
@@ -83,7 +83,7 @@ export function Dashboard(): React.ReactElement {
       {/* This Week Section */}
       <div className="rounded-lg bg-primary-700 p-6">
         {isMobile ? (
-          <MobileHeatmap profileId={currentProfile.id} />
+          <MobileCarousel profileId={currentProfile.id} />
         ) : (
           <>
             <div className="mb-6">
