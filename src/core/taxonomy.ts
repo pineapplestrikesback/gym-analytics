@@ -171,7 +171,7 @@ export type ExerciseMapping = Partial<Record<ScientificMuscle, number>>;
  * UI muscle group categories for displaying muscles in forms/editors.
  * This is the single source of truth for UI components like MuscleValueEditor.
  */
-export type UIMuscleGroup = 'Back' | 'Chest' | 'Shoulders' | 'Arms' | 'Legs' | 'Core' | 'Forearms';
+export type UIMuscleGroup = 'Back' | 'Chest' | 'Shoulders' | 'Arms' | 'Legs' | 'Core';
 
 /**
  * UI muscle groups with their constituent ScientificMuscles.
@@ -209,6 +209,8 @@ export const UI_MUSCLE_GROUPS: readonly { name: UIMuscleGroup; muscles: readonly
       'Biceps Brachii',
       'Triceps (Long Head)',
       'Triceps (Lateral/Medial)',
+      'Forearm Flexors',
+      'Forearm Extensors',
     ],
   },
   {
@@ -230,13 +232,6 @@ export const UI_MUSCLE_GROUPS: readonly { name: UIMuscleGroup; muscles: readonly
       'Rectus Abdominis',
       'Obliques',
       'Hip Flexors',
-    ],
-  },
-  {
-    name: 'Forearms',
-    muscles: [
-      'Forearm Flexors',
-      'Forearm Extensors',
     ],
   },
 ] as const;
