@@ -86,10 +86,10 @@
 | HEAT-02     | 3     | Complete |
 | HEAT-03     | 3     | Complete |
 | HEAT-04     | 8     | Pending  |
-| LIST-01     | 5     | Pending  |
-| LIST-02     | 5     | Pending  |
-| LIST-03     | 5     | Pending  |
-| LIST-04     | 5     | Pending  |
+| LIST-01     | 5     | Complete |
+| LIST-02     | 5     | Complete |
+| LIST-03     | 5     | Complete |
+| LIST-04     | 5     | Complete |
 | LIST-05     | 8     | Pending  |
 | DETAIL-01   | 7     | Pending  |
 | DETAIL-02   | 7     | Pending  |
@@ -97,9 +97,9 @@
 | VIS-01      | 2     | Complete |
 | VIS-02      | 2     | Complete |
 | VIS-03      | 2     | Complete |
-| TOGGLE-01   | 4     | Pending  |
-| TOGGLE-02   | 4     | Pending  |
-| TOGGLE-03   | 4     | Pending  |
+| TOGGLE-01   | 4     | Complete |
+| TOGGLE-02   | 4     | Complete |
+| TOGGLE-03   | 4     | Complete |
 | ARCH-01     | 1     | Complete |
 | ARCH-02     | 1     | Complete |
 | GROUP-01    | 9     | Pending  |
@@ -117,4 +117,4 @@
 ---
 
 _Requirements defined: 2026-01-18_
-_Last updated: 2026-01-19 after Phase 3 completion_
+_Last updated: 2026-01-22 after Phase 5 completion_

@@ -15,7 +15,7 @@ This roadmap transforms the muscle heatmap from a label-cluttered display into a
 - [x] **Phase 2: Visual System** - Define color scale and design tokens
 - [x] **Phase 3: Heatmap Core** - Body visualization with volume-based coloring
 - [x] **Phase 4: Front/Back Toggle** - Rotation-style view switching
-- [ ] **Phase 5: Muscle List** - Grouped list with progress bars
+- [x] **Phase 5: Muscle List** - Grouped list with progress bars
 - [ ] **Phase 6: Carousel Navigation** - Swipeable two-slide interface
 - [ ] **Phase 7: Detail Pop-up** - Muscle detail overlay component
 - [ ] **Phase 8: Tap Interactions** - Connect taps to pop-up system
@@ -111,8 +111,8 @@ Plans:
 
 Plans:
 
-- [ ] 05-01-PLAN.md - Create collapsible group component structure
-- [ ] 05-02-PLAN.md - Add progress bars and wire data integration
+- [x] 05-01-PLAN.md - Create collapsible group component structure
+- [x] 05-02-PLAN.md - Add progress bars and wire data integration
 
 ### Phase 6: Carousel Navigation
 
@@ -202,7 +202,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 2. Visual System        | 2/2            | Complete    | 2026-01-18 |
 | 3. Heatmap Core         | 2/2            | Complete    | 2026-01-19 |
 | 4. Front/Back Toggle    | 1/1            | Complete    | 2026-01-19 |
-| 5. Muscle List          | 0/2            | Not started | -          |
+| 5. Muscle List          | 2/2            | Complete    | 2026-01-22 |
 | 6. Carousel Navigation  | 0/2            | Not started | -          |
 | 7. Detail Pop-up        | 0/2            | Not started | -          |
 | 8. Tap Interactions     | 0/3            | Not started | -          |
@@ -211,4 +211,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-22 (Phase 5 planned)_
+_Last updated: 2026-01-22 (Phase 5 complete)_
