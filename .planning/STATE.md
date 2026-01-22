@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 5 - Muscle List
+**Current focus:** Phase 5 - Muscle List (Complete)
 
 ## Current Position
 
 Phase: 5 of 9 (Muscle List)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-22 - Completed 05-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-01-22 - Completed 05-02-PLAN.md
 
-Progress: [======....] 58%
+Progress: [=======...] 67%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 7
-- Average duration: 3 min
-- Total execution time: 21 min
+- Total plans completed: 8
+- Average duration: 2.9 min
+- Total execution time: 23 min
 
 **By Phase:**
 
@@ -32,11 +32,11 @@ Progress: [======....] 58%
 | 02-visual-system        | 2     | 7 min | 3.5 min  |
 | 03-heatmap-core         | 2     | 7 min | 3.5 min  |
 | 04-front-back-toggle    | 1     | 2 min | 2 min    |
-| 05-muscle-list          | 1     | 1 min | 1 min    |
+| 05-muscle-list          | 2     | 3 min | 1.5 min  |
 
 **Recent Trend:**
 
-- Last 5 plans: 3 min, 3 min, 4 min, 2 min, 1 min
+- Last 5 plans: 3 min, 4 min, 2 min, 1 min, 2 min
 - Trend: Stable (faster on smaller plans)
 
 _Updated after each plan completion_
@@ -65,6 +65,9 @@ Recent decisions affecting current work:
 - Button shows opposite view label ('Back'/'Front') for discoverability (TOGGLE-LABEL)
 - First group starts expanded for mobile muscle list (LIST-MOBILE-01)
 - Use existing 7 UI_MUSCLE_GROUPS for consistency with WeeklyGoalEditor
+- Progress bar width clamped to 100% (data can exceed but bar fills at max)
+- Group totals replace muscle count badge in headers for actionable info
+- formatVolume shows whole numbers without decimals, fractions with one decimal
 
 ### Patterns Established
 
@@ -85,6 +88,10 @@ Recent decisions affecting current work:
 - **FLIP-02:** Both faces have backfaceVisibility hidden, back face pre-rotated 180deg
 - **LIST-EXPAND-01:** useState<Set<string>> for tracking multiple expanded sections
 - **LIST-MOBILE-01:** First item expanded by default for mobile scroll optimization
+- **LIST-DATA-01:** useScientificMuscleVolume for muscle-level volume data
+- **LIST-DATA-02:** statsMap via useMemo for O(1) muscle lookup
+- **LIST-PROGRESS-01:** w-24 h-2 progress bar with rounded-full and dynamic backgroundColor
+- **LIST-SUMMARY-01:** Group headers show aggregate volume with getVolumeColor
 
 ### Pending Todos
 
@@ -92,10 +99,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Plan 05-01 complete, ready for 05-02 (progress bars and data wiring).
+None - Phase 05 complete, ready for Phase 06 (mobile layout integration).
 
 ## Session Continuity
 
-Last session: 2026-01-22T21:47:24Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-01-22T21:51:38Z
+Stopped at: Completed 05-02-PLAN.md (Phase 05 complete)
 Resume file: None
