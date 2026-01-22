@@ -100,20 +100,19 @@ Plans:
 **Goal**: Secondary view shows all muscles grouped by region with progress bars
 **Depends on**: Phase 2
 **Requirements**: LIST-01, LIST-02, LIST-03, LIST-04
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Success Criteria** (what must be TRUE):
 
-1. Muscles appear grouped under region headers (Shoulders, Chest, Back, Arms, Core, Legs) (LIST-01)
+1. Muscles appear grouped under region headers (Back, Chest, Shoulders, Arms, Legs, Core, Forearms) (LIST-01)
 2. Groups can be collapsed/expanded by tapping header (LIST-02)
-3. Each muscle shows name and horizontal progress bar (0-20 sets scale) (LIST-03)
+3. Each muscle shows name and horizontal progress bar (percentage-based) (LIST-03)
 4. Numeric set count appears with secondary visual emphasis (smaller/dimmer) (LIST-04)
 
 Plans:
 
-- [ ] 05-01: Create collapsible group component structure
-- [ ] 05-02: Implement muscle row with progress bar
-- [ ] 05-03: Integrate data and render full list
+- [ ] 05-01-PLAN.md - Create collapsible group component structure
+- [ ] 05-02-PLAN.md - Add progress bars and wire data integration
 
 ### Phase 6: Carousel Navigation
 
@@ -203,7 +202,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 2. Visual System        | 2/2            | Complete    | 2026-01-18 |
 | 3. Heatmap Core         | 2/2            | Complete    | 2026-01-19 |
 | 4. Front/Back Toggle    | 1/1            | Complete    | 2026-01-19 |
-| 5. Muscle List          | 0/3            | Not started | -          |
+| 5. Muscle List          | 0/2            | Not started | -          |
 | 6. Carousel Navigation  | 0/2            | Not started | -          |
 | 7. Detail Pop-up        | 0/2            | Not started | -          |
 | 8. Tap Interactions     | 0/3            | Not started | -          |
@@ -212,4 +211,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-19 (Phase 4 complete)_
+_Last updated: 2026-01-22 (Phase 5 planned)_
