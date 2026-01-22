@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 ## Current Position
 
 Phase: 6 of 9 (Carousel Navigation)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-22 - Completed 06-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-01-22 - Completed 06-02-PLAN.md
 
-Progress: [========..] 75%
+Progress: [==========] 83%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 9
-- Average duration: 2.8 min
-- Total execution time: 25 min
+- Total plans completed: 10
+- Average duration: 2.7 min
+- Total execution time: 30 min
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [========..] 75%
 | 03-heatmap-core         | 2     | 7 min | 3.5 min  |
 | 04-front-back-toggle    | 1     | 2 min | 2 min    |
 | 05-muscle-list          | 2     | 3 min | 1.5 min  |
-| 06-carousel-navigation  | 1     | 2 min | 2 min    |
+| 06-carousel-navigation  | 2     | 7 min | 3.5 min  |
 
 **Recent Trend:**
 
-- Last 5 plans: 4 min, 2 min, 1 min, 2 min, 2 min
+- Last 5 plans: 2 min, 1 min, 2 min, 2 min, 5 min
 - Trend: Stable (consistently fast on focused plans)
 
 _Updated after each plan completion_
@@ -65,14 +65,17 @@ Recent decisions affecting current work:
 - Combined Task 1 and Task 2 into single atomic commit for 3D flip (toggle button integral to container)
 - Button shows opposite view label ('Back'/'Front') for discoverability (TOGGLE-LABEL)
 - First group starts expanded for mobile muscle list (LIST-MOBILE-01)
-- Use existing 7 UI_MUSCLE_GROUPS for consistency with WeeklyGoalEditor
+- Use existing 6 UI_MUSCLE_GROUPS (Forearms merged into Arms)
 - Progress bar width clamped to 100% (data can exceed but bar fills at max)
-- Group totals replace muscle count badge in headers for actionable info
+- Group totals removed from headers for cleaner UI
 - formatVolume shows whole numbers without decimals, fractions with one decimal
 - embla-carousel-react over custom touch handling for iOS Safari compatibility
 - loop: false for 2-slide carousels (loop breaks with only 2 slides in Embla)
 - touch-pan-y CSS class for vertical scroll compatibility on carousels
 - Elongated active dot (w-4) vs round inactive (w-2) for carousel indicators
+- Two-line muscle list layout (name+ratio, then progress bar) for better readability
+- Bilateral muscle highlighting: tapping one side highlights both left and right
+- Persistent muscle highlights: selection stays until user changes it
 
 ### Patterns Established
 
@@ -101,6 +104,10 @@ Recent decisions affecting current work:
 - **NAV-DOT-01:** Track selected index via emblaApi.on('select') event
 - **NAV-A11Y-01:** aria-label and aria-selected on dot indicators for accessibility
 - **NAV-SCROLL-01:** touch-pan-y class on flex container allows vertical scroll
+- **LIST-MOBILE-02:** Two-line muscle layout with h-1 progress bar spanning full width
+- **LIST-MOBILE-03:** Clean group headers showing only name + chevron
+- **HEAT-BILATERAL-01:** Tapping one side highlights both left and right muscles
+- **HEAT-PERSIST-01:** Selected muscle highlight persists across view flips and until user changes selection
 
 ### Pending Todos
 
@@ -108,10 +115,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Phase 06 Plan 01 complete, carousel ready for integration.
+None - Phase 06 complete with improved mobile UX.
 
 ## Session Continuity
 
-Last session: 2026-01-22T22:19:38Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-01-22T23:11:00Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
