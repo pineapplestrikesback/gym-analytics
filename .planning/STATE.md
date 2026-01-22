@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 5 - Muscle List (Complete)
+**Current focus:** Phase 6 - Carousel Navigation (In Progress)
 
 ## Current Position
 
-Phase: 5 of 9 (Muscle List)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-22 - Completed 05-02-PLAN.md
+Phase: 6 of 9 (Carousel Navigation)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-22 - Completed 06-01-PLAN.md
 
-Progress: [=======...] 67%
+Progress: [========..] 75%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 8
-- Average duration: 2.9 min
-- Total execution time: 23 min
+- Total plans completed: 9
+- Average duration: 2.8 min
+- Total execution time: 25 min
 
 **By Phase:**
 
@@ -33,11 +33,12 @@ Progress: [=======...] 67%
 | 03-heatmap-core         | 2     | 7 min | 3.5 min  |
 | 04-front-back-toggle    | 1     | 2 min | 2 min    |
 | 05-muscle-list          | 2     | 3 min | 1.5 min  |
+| 06-carousel-navigation  | 1     | 2 min | 2 min    |
 
 **Recent Trend:**
 
-- Last 5 plans: 3 min, 4 min, 2 min, 1 min, 2 min
-- Trend: Stable (faster on smaller plans)
+- Last 5 plans: 4 min, 2 min, 1 min, 2 min, 2 min
+- Trend: Stable (consistently fast on focused plans)
 
 _Updated after each plan completion_
 
@@ -68,6 +69,10 @@ Recent decisions affecting current work:
 - Progress bar width clamped to 100% (data can exceed but bar fills at max)
 - Group totals replace muscle count badge in headers for actionable info
 - formatVolume shows whole numbers without decimals, fractions with one decimal
+- embla-carousel-react over custom touch handling for iOS Safari compatibility
+- loop: false for 2-slide carousels (loop breaks with only 2 slides in Embla)
+- touch-pan-y CSS class for vertical scroll compatibility on carousels
+- Elongated active dot (w-4) vs round inactive (w-2) for carousel indicators
 
 ### Patterns Established
 
@@ -92,6 +97,10 @@ Recent decisions affecting current work:
 - **LIST-DATA-02:** statsMap via useMemo for O(1) muscle lookup
 - **LIST-PROGRESS-01:** w-24 h-2 progress bar with rounded-full and dynamic backgroundColor
 - **LIST-SUMMARY-01:** Group headers show aggregate volume with getVolumeColor
+- **NAV-EMBLA-01:** useEmblaCarousel with loop: false for 2-slide carousels
+- **NAV-DOT-01:** Track selected index via emblaApi.on('select') event
+- **NAV-A11Y-01:** aria-label and aria-selected on dot indicators for accessibility
+- **NAV-SCROLL-01:** touch-pan-y class on flex container allows vertical scroll
 
 ### Pending Todos
 
@@ -99,10 +108,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Phase 05 complete, ready for Phase 06 (mobile layout integration).
+None - Phase 06 Plan 01 complete, carousel ready for integration.
 
 ## Session Continuity
 
-Last session: 2026-01-22T21:51:38Z
-Stopped at: Completed 05-02-PLAN.md (Phase 05 complete)
+Last session: 2026-01-22T22:19:38Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
