@@ -41,6 +41,31 @@ export function MobileMuscleList({
   const statsMap = useMemo(() => {
     return new Map<string, VolumeStatItem>(stats.map((s) => [s.name, s]));
   }, [stats]);
+
+  // Calculate group summaries for header display
+  const groupSummaries = useMemo(() => {
+    const summaries = new Map<
+      string,
+      { totalVolume: number; totalGoal: number; percentage: number }
+    >();
+
+    for (const group of UI_MUSCLE_GROUPS) {
+      let totalVolume = 0;
+      let totalGoal = 0;
+
+      for (const muscle of group.muscles) {
+        const muscleStats = statsMap.get(muscle);
+        totalVolume += muscleStats?.volume ?? 0;
+        totalGoal += muscleStats?.goal ?? 0;
+      }
+
+      const percentage = totalGoal > 0 ? (totalVolume / totalGoal) * 100 : 0;
+      summaries.set(group.name, { totalVolume, totalGoal, percentage });
+    }
+
+    return summaries;
+  }, [statsMap]);
+
   // Start with first group expanded (mobile-optimized: less initial scrolling)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const firstGroup = UI_MUSCLE_GROUPS[0];
@@ -80,6 +105,9 @@ export function MobileMuscleList({
     <div className="space-y-2">
       {UI_MUSCLE_GROUPS.map((group) => {
         const isExpanded = expandedGroups.has(group.name);
+        const summary = groupSummaries.get(group.name);
+        const groupPercentage = summary?.percentage ?? 0;
+        const groupVolume = summary?.totalVolume ?? 0;
 
         return (
           <div
@@ -111,10 +139,16 @@ export function MobileMuscleList({
               {/* Group name */}
               <span className="font-medium text-white">{group.name}</span>
 
-              {/* Muscle count badge */}
-              <span className="ml-auto text-xs text-primary-400">
-                {group.muscles.length} muscles
-              </span>
+              {/* Group summary - total sets with color indicating progress */}
+              <div className="ml-auto flex items-center gap-2">
+                <span
+                  className="font-mono text-sm"
+                  style={{ color: getVolumeColor(groupPercentage) }}
+                >
+                  {formatVolume(groupVolume)}
+                </span>
+                <span className="text-primary-400 text-xs">sets</span>
+              </div>
             </button>
 
             {/* Group content - conditionally rendered */}
