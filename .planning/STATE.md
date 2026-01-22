@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 4 - Front/Back Toggle
+**Current focus:** Phase 5 - Muscle List
 
 ## Current Position
 
-Phase: 4 of 9 (Front/Back Toggle)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-01-19 - Completed 04-01-PLAN.md
+Phase: 5 of 9 (Muscle List)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-22 - Completed 05-01-PLAN.md
 
-Progress: [=====.....] 50%
+Progress: [======....] 58%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 6
-- Average duration: 4 min
-- Total execution time: 20 min
+- Total plans completed: 7
+- Average duration: 3 min
+- Total execution time: 21 min
 
 **By Phase:**
 
@@ -32,10 +32,11 @@ Progress: [=====.....] 50%
 | 02-visual-system        | 2     | 7 min | 3.5 min  |
 | 03-heatmap-core         | 2     | 7 min | 3.5 min  |
 | 04-front-back-toggle    | 1     | 2 min | 2 min    |
+| 05-muscle-list          | 1     | 1 min | 1 min    |
 
 **Recent Trend:**
 
-- Last 5 plans: 4 min, 3 min, 3 min, 4 min, 2 min
+- Last 5 plans: 3 min, 3 min, 4 min, 2 min, 1 min
 - Trend: Stable (faster on smaller plans)
 
 _Updated after each plan completion_
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - Use @media (hover: hover) for touch vs mouse device handling (HEAT-02-TOUCH)
 - Combined Task 1 and Task 2 into single atomic commit for 3D flip (toggle button integral to container)
 - Button shows opposite view label ('Back'/'Front') for discoverability (TOGGLE-LABEL)
+- First group starts expanded for mobile muscle list (LIST-MOBILE-01)
+- Use existing 7 UI_MUSCLE_GROUPS for consistency with WeeklyGoalEditor
 
 ### Patterns Established
 
@@ -80,6 +83,8 @@ Recent decisions affecting current work:
 - **TOGGLE-03:** useSessionState hook provides session-scoped persistence
 - **FLIP-01:** Perspective on parent container, preserve-3d on rotating element
 - **FLIP-02:** Both faces have backfaceVisibility hidden, back face pre-rotated 180deg
+- **LIST-EXPAND-01:** useState<Set<string>> for tracking multiple expanded sections
+- **LIST-MOBILE-01:** First item expanded by default for mobile scroll optimization
 
 ### Pending Todos
 
@@ -87,10 +92,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Phase 4 complete, ready for Phase 5.
+None - Plan 05-01 complete, ready for 05-02 (progress bars and data wiring).
 
 ## Session Continuity
 
-Last session: 2026-01-19T01:44:34Z
-Stopped at: Completed 04-01-PLAN.md (Phase 4 complete)
+Last session: 2026-01-22T21:47:24Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
