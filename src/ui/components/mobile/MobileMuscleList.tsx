@@ -8,8 +8,10 @@
  * Touch: :active pseudo-class for feedback (MOBILE-02)
  */
 
-import { useState } from 'react';
-import { UI_MUSCLE_GROUPS } from '@core/taxonomy';
+import { useState, useMemo } from 'react';
+import { UI_MUSCLE_GROUPS, type ScientificMuscle } from '@core/taxonomy';
+import { useScientificMuscleVolume, type VolumeStatItem } from '@db/hooks/useVolumeStats';
+import { getVolumeColor } from '@core/color-scale';
 
 interface MobileMuscleListProps {
   profileId: string | null;
@@ -21,9 +23,16 @@ interface MobileMuscleListProps {
  * First group starts expanded for mobile-optimized viewing.
  */
 export function MobileMuscleList({
-  profileId: _profileId,
-  daysBack: _daysBack = 7,
+  profileId,
+  daysBack = 7,
 }: MobileMuscleListProps): React.ReactElement {
+  // Fetch volume data for all muscles
+  const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+
+  // Create stats map for quick lookup by muscle name
+  const statsMap = useMemo(() => {
+    return new Map<string, VolumeStatItem>(stats.map((s) => [s.name, s]));
+  }, [stats]);
   // Start with first group expanded (mobile-optimized: less initial scrolling)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const firstGroup = UI_MUSCLE_GROUPS[0];
@@ -39,6 +48,25 @@ export function MobileMuscleList({
     }
     setExpandedGroups(newExpanded);
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-300 border-t-white" />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="rounded-lg bg-red-900/50 p-4 text-center">
+        <p className="font-medium text-red-200">Failed to load muscle data</p>
+        <p className="mt-1 text-sm text-red-300/70">{error.message}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
