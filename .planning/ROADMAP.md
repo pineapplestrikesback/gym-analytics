@@ -119,7 +119,7 @@ Plans:
 **Goal**: User can swipe between heatmap and muscle list in Instagram-style carousel
 **Depends on**: Phase 3, Phase 5
 **Requirements**: NAV-01, NAV-02, NAV-03
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -130,8 +130,8 @@ Plans:
 
 Plans:
 
-- [ ] 06-01: Implement carousel container with swipe detection
-- [ ] 06-02: Add slide indicators and default view logic
+- [ ] 06-01-PLAN.md - Install embla-carousel-react, create carousel container with swipe and dot indicators
+- [ ] 06-02-PLAN.md - Integrate carousel into Dashboard and human-verify UX
 
 ### Phase 7: Detail Pop-up
 
@@ -203,7 +203,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 3. Heatmap Core         | 2/2            | Complete    | 2026-01-19 |
 | 4. Front/Back Toggle    | 1/1            | Complete    | 2026-01-19 |
 | 5. Muscle List          | 2/2            | Complete    | 2026-01-22 |
-| 6. Carousel Navigation  | 0/2            | Not started | -          |
+| 6. Carousel Navigation  | 0/2            | Planned     | -          |
 | 7. Detail Pop-up        | 0/2            | Not started | -          |
 | 8. Tap Interactions     | 0/3            | Not started | -          |
 | 9. Custom Grouping      | 0/3            | Not started | -          |
@@ -211,4 +211,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-22 (Phase 5 complete)_
+_Last updated: 2026-01-22 (Phase 6 planned)_
