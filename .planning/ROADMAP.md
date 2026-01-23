@@ -156,7 +156,7 @@ Plans:
 **Goal**: Tapping muscles on heatmap or list opens detail pop-up
 **Depends on**: Phase 3, Phase 5, Phase 7
 **Requirements**: HEAT-04, LIST-05
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -166,9 +166,8 @@ Plans:
 
 Plans:
 
-- [ ] 08-01: Add tap handlers to heatmap regions
-- [ ] 08-02: Add tap handlers to list rows
-- [ ] 08-03: Wire up pop-up state management
+- [ ] 08-01-PLAN.md - Add single-muscle modal mode and list row tap handlers
+- [ ] 08-02-PLAN.md - Fix bilateral tap animation and suppress default tap highlights
 
 ### Phase 9: Custom Grouping
 
@@ -205,10 +204,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 5. Muscle List          | 2/2            | Complete    | 2026-01-22 |
 | 6. Carousel Navigation  | 2/2            | Complete    | 2026-01-23 |
 | 7. Detail Pop-up        | 2/2            | Complete    | 2026-01-23 |
-| 8. Tap Interactions     | 0/3            | Not started | -          |
+| 8. Tap Interactions     | 0/2            | Not started | -          |
 | 9. Custom Grouping      | 0/3            | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-23 (Phase 7 planned)_
+_Last updated: 2026-01-23 (Phase 8 planned)_
