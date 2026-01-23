@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 6 - Carousel Navigation (Complete)
+**Current focus:** Phase 7 - Detail Pop-up (Plan 1 complete)
 
 ## Current Position
 
-Phase: 6 of 9 (Carousel Navigation)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-22 - Completed 06-02-PLAN.md
+Phase: 7 of 9 (Detail Pop-up)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-23 - Completed 07-01-PLAN.md
 
-Progress: [==========] 83%
+Progress: [==========] 85%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 10
-- Average duration: 2.7 min
-- Total execution time: 30 min
+- Total plans completed: 11
+- Average duration: 2.6 min
+- Total execution time: 32 min
 
 **By Phase:**
 
@@ -34,10 +34,11 @@ Progress: [==========] 83%
 | 04-front-back-toggle    | 1     | 2 min | 2 min    |
 | 05-muscle-list          | 2     | 3 min | 1.5 min  |
 | 06-carousel-navigation  | 2     | 7 min | 3.5 min  |
+| 07-detail-pop-up        | 1     | 2 min | 2 min    |
 
 **Recent Trend:**
 
-- Last 5 plans: 2 min, 1 min, 2 min, 2 min, 5 min
+- Last 5 plans: 1 min, 2 min, 2 min, 5 min, 2 min
 - Trend: Stable (consistently fast on focused plans)
 
 _Updated after each plan completion_
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - Two-line muscle list layout (name+ratio, then progress bar) for better readability
 - Bilateral muscle highlighting: tapping one side highlights both left and right
 - Persistent muscle highlights: selection stays until user changes it
+- Combined modal tasks into single commit (dismiss handlers integral to modal functionality)
+- X button in top-right with pt-12 padding for content clearance
+- Simple touchStart/touchEnd for swipe (no passive: false to preserve list scrolling)
 
 ### Patterns Established
 
@@ -108,6 +112,10 @@ Recent decisions affecting current work:
 - **LIST-MOBILE-03:** Clean group headers showing only name + chevron
 - **HEAT-BILATERAL-01:** Tapping one side highlights both left and right muscles
 - **HEAT-PERSIST-01:** Selected muscle highlight persists across view flips and until user changes selection
+- **MODAL-01:** Portal rendering via createPortal to document.body for z-index isolation
+- **MODAL-02:** Body scroll lock via document.body.style.overflow = 'hidden'
+- **MODAL-03:** Touch guard pattern with optional chaining for touch events
+- **MODAL-04:** 44x44px minimum touch target for close button accessibility
 
 ### Pending Todos
 
@@ -115,10 +123,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Phase 06 complete with improved mobile UX.
+None - Plan 07-01 complete, MuscleDetailModal ready for integration.
 
 ## Session Continuity
 
-Last session: 2026-01-22T23:11:00Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-01-23T13:37:38Z
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None
