@@ -232,7 +232,7 @@ export function WeeklyActivityChart({
       </div>
 
       {/* Chart */}
-      <div className="p-4">
+      <div className="p-4 [&_*]:outline-none [&_*:focus]:outline-none [&_*:focus-visible]:outline-none [&_svg]:outline-none">
         {!hasData ? (
           <EmptyState />
         ) : (
@@ -261,7 +261,7 @@ export function WeeklyActivityChart({
                 domain={[0, maxSets]}
                 allowDataOverflow={false}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(6, 182, 212, 0.1)' }} />
+              <Tooltip content={<CustomTooltip />} cursor={false} />
               <Bar
                 dataKey="totalSets"
                 radius={[4, 4, 0, 0]}
@@ -289,8 +289,7 @@ export function WeeklyActivityChart({
                     <Cell
                       key={`cell-${index}`}
                       fill={fillColor}
-                      stroke={isSelected ? '#22d3ee' : 'transparent'}
-                      strokeWidth={isSelected ? 2 : 0}
+                      stroke="none"
                     />
                   );
                 })}
