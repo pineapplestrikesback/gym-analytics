@@ -14,6 +14,7 @@ import { parseCsv } from '@core/parsers/csv-parser';
 import type { Workout } from '@db/schema';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { WeeklyGoalEditor } from '../components/WeeklyGoalEditor';
+import { MuscleGroupEditor } from '@ui/components/settings/MuscleGroupEditor';
 
 export function Settings(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
@@ -329,11 +330,21 @@ export function Settings(): React.ReactElement {
       <section className="rounded-lg bg-primary-700 p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">Weekly Goals</h3>
         <WeeklyGoalEditor
+          profileId={currentProfile.id}
           goals={currentProfile.goals}
           totalGoal={currentProfile.totalGoal}
           onSave={handleSaveGoals}
           isSaving={isUpdating}
         />
+      </section>
+
+      {/* Muscle Groups Section */}
+      <section className="rounded-lg bg-primary-700 p-6">
+        <h3 className="mb-4 text-lg font-semibold text-white">Muscle Groups</h3>
+        <p className="mb-4 text-sm text-primary-300">
+          Customize how muscles are organized in the muscle list.
+        </p>
+        <MuscleGroupEditor profileId={currentProfile.id} />
       </section>
 
       {/* Exercise Mappings Section */}

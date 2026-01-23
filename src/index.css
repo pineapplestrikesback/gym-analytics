@@ -1,7 +1,34 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Background */
+  /* ============================================
+   * SURFACE HIERARCHY (Dark Theme)
+   * Use oklch for perceptual uniformity
+   * ============================================ */
+  --color-surface-base: oklch(0.13 0.01 270); /* Darkest - page background */
+  --color-surface-raised: oklch(0.16 0.01 270); /* Cards, panels */
+  --color-surface-overlay: oklch(0.2 0.01 270); /* Modals, pop-ups */
+
+  /* ============================================
+   * TEXT HIERARCHY
+   * Neutral grays for optimal readability
+   * ============================================ */
+  --color-text-primary: oklch(0.95 0 0); /* Main text - high contrast */
+  --color-text-secondary: oklch(0.75 0 0); /* Supporting text */
+  --color-text-muted: oklch(0.55 0 0); /* Disabled/dimmed content */
+
+  /* ============================================
+   * SEMANTIC STATUS COLORS
+   * Aligned with color-scale.ts for consistency
+   * ============================================ */
+  --color-status-success: oklch(0.72 0.19 142); /* Green - goal met */
+  --color-status-warning: oklch(0.75 0.18 85); /* Yellow - over target */
+  --color-status-danger: oklch(0.55 0.22 29); /* Red - significantly over */
+
+  /* ============================================
+   * LEGACY PRIMARY SCALE (Zinc grays)
+   * Kept for existing Tailwind utilities
+   * ============================================ */
   --color-primary-50: #fafafa;
   --color-primary-100: #f4f4f5;
   --color-primary-200: #e4e4e7;
@@ -13,12 +40,21 @@
   --color-primary-800: #0d0d0f;
   --color-primary-900: #09090b;
 
-  /* Accents */
+  /* ============================================
+   * ACCENT COLORS
+   * Existing accents for buttons/highlights
+   * ============================================ */
   --color-accent-cyan: #22d3ee;
   --color-accent-orange: #f97316;
   --color-accent-red: #ef4444;
   --color-accent-yellow: #facc15;
   --color-accent-blue: #22d3ee;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 body {

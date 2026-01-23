@@ -1,0 +1,213 @@
+# Roadmap: Mobile Muscle Heatmap Refactor
+
+## Overview
+
+This roadmap transforms the muscle heatmap from a label-cluttered display into a pattern-driven visualization where the body itself carries the signal. We start by establishing component architecture and visual foundations, build the two main views (heatmap and muscle list), connect them with carousel navigation, add interactive detail pop-ups, and finish with custom grouping settings. Nine phases deliver all 28 requirements in natural build order.
+
+## Phases
+
+**Phase Numbering:**
+
+- Integer phases (1, 2, 3): Planned milestone work
+- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+- [x] **Phase 1: Component Foundation** - Establish mobile component architecture and data hooks
+- [x] **Phase 2: Visual System** - Define color scale and design tokens
+- [x] **Phase 3: Heatmap Core** - Body visualization with volume-based coloring
+- [x] **Phase 4: Front/Back Toggle** - Rotation-style view switching
+- [x] **Phase 5: Muscle List** - Grouped list with progress bars
+- [x] **Phase 6: Carousel Navigation** - Swipeable two-slide interface
+- [x] **Phase 7: Detail Pop-up** - Muscle detail overlay component
+- [x] **Phase 8: Tap Interactions** - Connect taps to pop-up system
+- [ ] **Phase 9: Custom Grouping** - User-configurable muscle groups in Settings
+
+## Phase Details
+
+### Phase 1: Component Foundation
+
+**Goal**: Establish isolated mobile component architecture with shared data hooks
+**Depends on**: Nothing (first phase)
+**Requirements**: ARCH-01, ARCH-02
+**Plans**: 1 plan
+
+**Success Criteria** (what must be TRUE):
+
+1. Mobile heatmap component exists separately from desktop (ARCH-01)
+2. Data hooks are imported from shared location, not duplicated (ARCH-02)
+3. Mobile component renders without affecting existing desktop code
+
+Plans:
+
+- [x] 01-01-PLAN.md - Create mobile component structure, device detection hook, and Dashboard integration
+
+### Phase 2: Visual System
+
+**Goal**: Establish color semantics and design tokens that make the body readable
+**Depends on**: Phase 1
+**Requirements**: VIS-01, VIS-02, VIS-03
+**Plans**: 2 plans
+
+**Success Criteria** (what must be TRUE):
+
+1. Red appears only when muscle volume exceeds target (VIS-01)
+2. Heatmap, progress bars, and highlights all use the same accent color (VIS-02)
+3. Background is dark neutral, consistent across all views (VIS-03)
+4. Color scale progresses from cool (low volume) to warm (high volume)
+
+Plans:
+
+- [x] 02-01-PLAN.md - Create color scale utility with Oklab interpolation and CSS design tokens
+- [x] 02-02-PLAN.md - Refactor existing components to use centralized color system
+
+### Phase 3: Heatmap Core
+
+**Goal**: Body diagram fills screen and shows training distribution through color
+**Depends on**: Phase 2
+**Requirements**: HEAT-01, HEAT-02, HEAT-03
+**Plans**: 2 plans
+
+**Success Criteria** (what must be TRUE):
+
+1. Body diagram fills available screen space without floating labels (HEAT-01)
+2. Each muscle region displays color corresponding to weekly volume (HEAT-02)
+3. Color scale uses warm progression - blue/purple for low, orange/yellow for high, red only for over-target (HEAT-03)
+4. User can visually identify high/low volume muscles at a glance without reading numbers
+
+Plans:
+
+- [x] 03-01-PLAN.md - Simplify desktop heatmap by removing floating cards, leader lines, and toggle button
+- [x] 03-02-PLAN.md - Implement mobile body visualization with volume-based coloring
+
+### Phase 4: Front/Back Toggle
+
+**Goal**: Toggle between front and back views feels like rotating the body
+**Depends on**: Phase 3
+**Requirements**: TOGGLE-01, TOGGLE-02, TOGGLE-03
+**Plans**: 1 plan
+
+**Success Criteria** (what must be TRUE):
+
+1. Toggle animates like rotation, not abrupt switch (TOGGLE-01)
+2. Toggle control is visually subtle, not prominent (TOGGLE-02)
+3. Toggle state persists when swiping to list slide and back (TOGGLE-03)
+
+Plans:
+
+- [x] 04-01-PLAN.md - Implement 3D flip animation, subtle toggle button, and sessionStorage persistence
+
+### Phase 5: Muscle List
+
+**Goal**: Secondary view shows all muscles grouped by region with progress bars
+**Depends on**: Phase 2
+**Requirements**: LIST-01, LIST-02, LIST-03, LIST-04
+**Plans**: 2 plans
+
+**Success Criteria** (what must be TRUE):
+
+1. Muscles appear grouped under region headers (Back, Chest, Shoulders, Arms, Legs, Core, Forearms) (LIST-01)
+2. Groups can be collapsed/expanded by tapping header (LIST-02)
+3. Each muscle shows name and horizontal progress bar (percentage-based) (LIST-03)
+4. Numeric set count appears with secondary visual emphasis (smaller/dimmer) (LIST-04)
+
+Plans:
+
+- [x] 05-01-PLAN.md - Create collapsible group component structure
+- [x] 05-02-PLAN.md - Add progress bars and wire data integration
+
+### Phase 6: Carousel Navigation
+
+**Goal**: User can swipe between heatmap and muscle list in Instagram-style carousel
+**Depends on**: Phase 3, Phase 5
+**Requirements**: NAV-01, NAV-02, NAV-03
+**Plans**: 2 plans
+
+**Success Criteria** (what must be TRUE):
+
+1. Horizontal swipe gesture moves between heatmap and list slides (NAV-01)
+2. Dot indicators show which slide is active (NAV-02)
+3. Opening the view defaults to heatmap slide (NAV-03)
+4. Swipe feels smooth and responsive
+
+Plans:
+
+- [x] 06-01-PLAN.md - Install embla-carousel-react, create carousel container with swipe and dot indicators
+- [x] 06-02-PLAN.md - Integrate carousel into Dashboard and human-verify UX
+
+### Phase 7: Detail Pop-up
+
+**Goal**: Modal component displays individual muscle details
+**Depends on**: Phase 2
+**Requirements**: DETAIL-01, DETAIL-02, DETAIL-03
+**Plans**: 2 plans
+
+**Success Criteria** (what must be TRUE):
+
+1. Pop-up displays muscle name, current weekly sets, and target range (DETAIL-01)
+2. Pop-up closes when tapping outside or X button (DETAIL-02)
+3. When pop-up is open, corresponding muscle is highlighted on heatmap (DETAIL-03)
+
+Plans:
+
+- [x] 07-01-PLAN.md - Create modal component with muscle list layout and all dismiss behaviors
+- [x] 07-02-PLAN.md - Integrate modal into MobileHeatmap with SVG highlighting and auto-close on flip
+
+### Phase 8: Tap Interactions
+
+**Goal**: Tapping muscles on heatmap or list opens detail pop-up
+**Depends on**: Phase 3, Phase 5, Phase 7
+**Requirements**: HEAT-04, LIST-05
+**Plans**: 2 plans
+
+**Success Criteria** (what must be TRUE):
+
+1. Tapping a muscle region on heatmap opens detail pop-up for that muscle (HEAT-04)
+2. Tapping a muscle row in list opens detail pop-up for that muscle (LIST-05)
+3. Touch targets are appropriately sized for mobile
+
+Plans:
+
+- [x] 08-01-PLAN.md - Add single-muscle modal mode and list row tap handlers
+- [x] 08-02-PLAN.md - Fix bilateral tap animation and suppress default tap highlights
+
+### Phase 9: Custom Grouping
+
+**Goal**: Users can customize how muscles are grouped in Settings
+**Depends on**: Phase 5
+**Requirements**: GROUP-01, GROUP-02, GROUP-03, GROUP-04, GROUP-05
+**Plans**: 3 plans
+
+**Success Criteria** (what must be TRUE):
+
+1. User can create, edit, and delete custom groups in Settings (GROUP-01)
+2. Each muscle belongs to exactly one group - no overlap (GROUP-02)
+3. Default groupings are provided when user has no customizations (GROUP-03)
+4. User cannot create more than 8 groups (GROUP-04)
+5. Groupings are saved per-profile and persist across sessions (GROUP-05)
+
+Plans:
+
+- [ ] 09-01-PLAN.md - Schema types, default config, and useMuscleGroups hook
+- [ ] 09-02-PLAN.md - Settings UI with drag-and-drop group editor
+- [ ] 09-03-PLAN.md - Integrate custom groups into MobileMuscleList and MobileHeatmap
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
+
+| Phase                   | Plans Complete | Status      | Completed  |
+| ----------------------- | -------------- | ----------- | ---------- |
+| 1. Component Foundation | 1/1            | Complete    | 2026-01-18 |
+| 2. Visual System        | 2/2            | Complete    | 2026-01-18 |
+| 3. Heatmap Core         | 2/2            | Complete    | 2026-01-19 |
+| 4. Front/Back Toggle    | 1/1            | Complete    | 2026-01-19 |
+| 5. Muscle List          | 2/2            | Complete    | 2026-01-22 |
+| 6. Carousel Navigation  | 2/2            | Complete    | 2026-01-23 |
+| 7. Detail Pop-up        | 2/2            | Complete    | 2026-01-23 |
+| 8. Tap Interactions     | 2/2            | Complete    | 2026-01-23 |
+| 9. Custom Grouping      | 0/3            | Not started | -          |
+
+---
+
+_Roadmap created: 2026-01-18_
+_Last updated: 2026-01-23 (Phase 9 planned)_
