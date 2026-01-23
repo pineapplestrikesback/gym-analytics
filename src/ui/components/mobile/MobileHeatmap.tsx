@@ -8,7 +8,7 @@
  * and session-persisted view state (TOGGLE-01, TOGGLE-03).
  */
 
-import { useMemo, useId, useState, useCallback } from 'react';
+import { useMemo, useId, useState, useCallback, useEffect } from 'react';
 import Model from 'react-body-highlighter';
 import type { IExerciseData, Muscle } from 'react-body-highlighter';
 import { useScientificMuscleVolume } from '@db/hooks';
@@ -139,6 +139,14 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
   );
   const [selectedRegion, setSelectedRegion] = useState<BodyRegion | null>(null);
   const [tappedRegion, setTappedRegion] = useState<BodyRegion | null>(null);
+
+  // Auto-clear tappedRegion after animation duration (prevents memory leak from setTimeout)
+  useEffect(() => {
+    if (tappedRegion !== null) {
+      const timer = setTimeout(() => setTappedRegion(null), 150);
+      return () => clearTimeout(timer);
+    }
+  }, [tappedRegion]);
 
   // Create set of hidden muscles for quick lookup
   const hiddenMuscles = useMemo(
@@ -405,17 +413,16 @@ function MobileBodyHighlighter({
         const mappedRegion = muscleToRegion.get(stats.muscle);
         if (mappedRegion) {
           // Trigger bilateral tap animation (both views will flash)
+          // Auto-cleared by useEffect after 150ms
           onTap(mappedRegion);
-          setTimeout(() => onTap(null), 150);
           onRegionClick(selectedRegion === mappedRegion ? null : mappedRegion);
         }
         return;
       }
 
       // Trigger bilateral tap animation (both views will flash)
+      // Auto-cleared by useEffect after 150ms
       onTap(region);
-      setTimeout(() => onTap(null), 150);
-
       onRegionClick(selectedRegion === region ? null : region);
     },
     [muscleToRegion, onRegionClick, onTap, selectedRegion]
@@ -463,7 +470,7 @@ function MobileBodyHighlighter({
           }
         }
 
-        ${selectedRegion ? `
+        ${selectedRegion && REGION_TO_LIBRARY_MUSCLES[selectedRegion][type === 'anterior' ? 'front' : 'back'].length > 0 ? `
         /* Selected region highlighting - white stroke when modal open */
         ${REGION_TO_LIBRARY_MUSCLES[selectedRegion][type === 'anterior' ? 'front' : 'back']
           .map((muscle) => `[data-mobile-heatmap="${scopeId}"] .rbh polygon#${muscle}`)

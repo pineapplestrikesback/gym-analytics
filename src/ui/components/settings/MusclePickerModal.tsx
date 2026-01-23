@@ -31,13 +31,15 @@ export function MusclePickerModal({
   const availableSet = new Set(availableMuscles);
 
   // Group available muscles by user's custom group configuration
-  const groupedMuscles: { name: string; muscles: ScientificMuscle[] }[] = [];
+  // Use stable keys (group.id or fixed strings) to avoid React reconciliation issues
+  const groupedMuscles: { key: string; name: string; muscles: ScientificMuscle[] }[] = [];
 
   // First add muscles from custom groups
   for (const group of groupConfig.groups) {
     const musclesInGroup = group.muscles.filter((m) => availableSet.has(m));
     if (musclesInGroup.length > 0) {
       groupedMuscles.push({
+        key: group.id,
         name: group.name,
         muscles: musclesInGroup,
       });
@@ -48,6 +50,7 @@ export function MusclePickerModal({
   const ungroupedMuscles = groupConfig.ungrouped.filter((m) => availableSet.has(m));
   if (ungroupedMuscles.length > 0) {
     groupedMuscles.push({
+      key: 'ungrouped',
       name: 'Ungrouped',
       muscles: ungroupedMuscles,
     });
@@ -57,6 +60,7 @@ export function MusclePickerModal({
   const hiddenMuscles = groupConfig.hidden.filter((m) => availableSet.has(m));
   if (hiddenMuscles.length > 0) {
     groupedMuscles.push({
+      key: 'hidden',
       name: 'Hidden',
       muscles: hiddenMuscles,
     });
@@ -91,7 +95,7 @@ export function MusclePickerModal({
           ) : (
             <div className="space-y-4">
               {groupedMuscles.map((group) => (
-                <div key={group.name}>
+                <div key={group.key}>
                   <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-primary-400">
                     {group.name}
                   </h4>
