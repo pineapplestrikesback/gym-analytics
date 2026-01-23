@@ -114,6 +114,7 @@ const HIGHLIGHTED_COLORS = [
   getVolumeColor(87.5), // frequency 4: 75-100%
   getVolumeColor(100), // frequency 5: 100%+
   'rgb(245, 158, 11)', // frequency 6: selected state (amber highlight)
+  'rgb(255, 255, 255)', // frequency 7: tap animation (white flash)
 ];
 
 interface MuscleStats {
@@ -134,6 +135,7 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
     'front'
   );
   const [selectedRegion, setSelectedRegion] = useState<BodyRegion | null>(null);
+  const [tappedRegion, setTappedRegion] = useState<BodyRegion | null>(null);
 
   // Map stats to muscle-level data
   const muscleStats = useMemo((): MuscleStats[] => {
@@ -238,7 +240,9 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
               type="anterior"
               regionStats={regionStats}
               selectedRegion={selectedRegion}
+              tappedRegion={tappedRegion}
               onRegionClick={setSelectedRegion}
+              onTap={setTappedRegion}
             />
           </div>
 
@@ -255,7 +259,9 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
               type="posterior"
               regionStats={regionStats}
               selectedRegion={selectedRegion}
+              tappedRegion={tappedRegion}
               onRegionClick={setSelectedRegion}
+              onTap={setTappedRegion}
             />
           </div>
         </div>
@@ -307,12 +313,16 @@ function MobileBodyHighlighter({
   type,
   regionStats,
   selectedRegion,
+  tappedRegion,
   onRegionClick,
+  onTap,
 }: {
   type: 'anterior' | 'posterior';
   regionStats: Map<BodyRegion, { percentage: number }>;
   selectedRegion: BodyRegion | null;
+  tappedRegion: BodyRegion | null;
   onRegionClick: (region: BodyRegion | null) => void;
+  onTap: (region: BodyRegion | null) => void;
 }): React.ReactElement {
   // Generate unique ID for scoped styles
   const scopeId = useId().replace(/:/g, '');
@@ -326,8 +336,13 @@ function MobileBodyHighlighter({
       const muscles = REGION_TO_LIBRARY_MUSCLES[region][viewKey];
 
       if (muscles.length > 0) {
-        // Use max frequency (6) for selected region to create persistent bilateral highlight
-        const frequency = selectedRegion === region ? 6 : getFrequencyLevel(stats.percentage);
+        // Priority: tap animation (7) > selected (6) > volume-based color
+        const frequency =
+          tappedRegion === region
+            ? 7 // Tap animation (highest priority - white flash)
+            : selectedRegion === region
+              ? 6 // Selected state (amber highlight)
+              : getFrequencyLevel(stats.percentage);
 
         muscles.forEach((muscle) => {
           data.push({
@@ -340,7 +355,7 @@ function MobileBodyHighlighter({
     });
 
     return data;
-  }, [type, regionStats, selectedRegion]);
+  }, [type, regionStats, selectedRegion, tappedRegion]);
 
   // Use module-level constant for highlight colors
   const highlightedColors = HIGHLIGHTED_COLORS;
@@ -367,14 +382,21 @@ function MobileBodyHighlighter({
         // Fallback: try to map the library muscle slug to a region
         const mappedRegion = muscleToRegion.get(stats.muscle);
         if (mappedRegion) {
+          // Trigger bilateral tap animation (both views will flash)
+          onTap(mappedRegion);
+          setTimeout(() => onTap(null), 150);
           onRegionClick(selectedRegion === mappedRegion ? null : mappedRegion);
         }
         return;
       }
 
+      // Trigger bilateral tap animation (both views will flash)
+      onTap(region);
+      setTimeout(() => onTap(null), 150);
+
       onRegionClick(selectedRegion === region ? null : region);
     },
-    [muscleToRegion, onRegionClick, selectedRegion]
+    [muscleToRegion, onRegionClick, onTap, selectedRegion]
   );
 
   return (
