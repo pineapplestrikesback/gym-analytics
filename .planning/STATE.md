@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 9 - Custom Grouping (ready to plan)
+**Current focus:** Phase 9 - Custom Grouping (in progress)
 
 ## Current Position
 
 Phase: 9 of 9 (Custom Grouping)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-01-23 - Completed Phase 8 (Tap Interactions)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-23 - Completed 09-01-PLAN.md (Data Layer)
 
-Progress: [=============] 89%
+Progress: [==============] 93%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 14
-- Average duration: 5.6 min (including user testing iterations)
-- Total execution time: 89 min
+- Total plans completed: 15
+- Average duration: 5.5 min (including user testing iterations)
+- Total execution time: 92 min
 
 **By Phase:**
 
@@ -36,11 +36,12 @@ Progress: [=============] 89%
 | 06-carousel-navigation  | 2     | 7 min  | 3.5 min  |
 | 07-detail-pop-up        | 2     | 47 min | 23.5 min |
 | 08-tap-interactions     | 2     | 10 min | 5 min    |
+| 09-custom-grouping      | 1     | 3 min  | 3 min    |
 
 **Recent Trend:**
 
-- Phase 8 completed with user-requested scope adjustment (list modals disabled)
-- Trend: User feedback during checkpoints leads to better UX decisions
+- Plan 09-01 completed in 3 min (data layer foundation)
+- Trend: Pure data/hook tasks complete faster than UI tasks
 
 _Updated after each plan completion_
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - Combined modal tasks into single commit (dismiss handlers integral to modal functionality)
 - X button in top-right with pt-12 padding for content clearance
 - Simple touchStart/touchEnd for swipe (no passive: false to preserve list scrolling)
+- 4 default muscle groups (Push, Pull, Legs, Core) - arms distributed into Push/Pull
+- MAX_GROUPS = 8 enforced at validation level
+- Optional customMuscleGroups field - no schema migration needed
 
 ### Patterns Established
 
@@ -127,6 +131,9 @@ Recent decisions affecting current work:
 - **MODAL-07:** Dual-mode modal via optional props (region vs single muscle)
 - **TAP-ANIM-01:** State-driven animation with priority over selection state
 - **TAP-CLEAN-01:** -webkit-tap-highlight-color: transparent on html element
+- **GROUP-CONFIG-01:** useEffectiveMuscleGroupConfig returns isUsingDefault flag for UI
+- **GROUP-CONFIG-02:** validateMuscleGroupConfig checks all 26 muscles accounted for
+- **GROUP-CONFIG-03:** moveMuscle removes from all locations before adding to target
 
 ### Pending Todos
 
@@ -134,10 +141,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Phase 8 complete.
+None - Plan 09-01 complete.
 
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed Phase 8
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
