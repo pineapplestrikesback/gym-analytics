@@ -2,29 +2,18 @@
  * SortableGroupRow
  *
  * Draggable group row with expand/collapse, inline rename, and nested sortable for muscles.
- * Uses @dnd-kit/sortable for group reordering and muscle reordering within.
+ * Uses @dnd-kit/sortable for group reordering. Muscle drag is handled by parent's unified DndContext.
  */
 
 import { useState, type KeyboardEvent } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { GripVertical, ChevronRight, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
-import type { CustomMuscleGroup } from '@db/schema';
+import type { CustomMuscleGroup, MuscleGroupConfig } from '@db/schema';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { SortableMuscleItem } from './SortableMuscleItem';
 import { MusclePickerModal } from './MusclePickerModal';
@@ -37,6 +26,9 @@ interface SortableGroupRowProps {
   onRemoveMuscle: (muscle: ScientificMuscle) => void;
   onAddMuscle: (muscle: ScientificMuscle, groupId: string) => void;
   availableMuscles: ScientificMuscle[];
+  groupConfig: MuscleGroupConfig;
+  muscleIdFn: (muscle: ScientificMuscle) => string;
+  forceCollapsed?: boolean;
 }
 
 export function SortableGroupRow({
@@ -46,8 +38,14 @@ export function SortableGroupRow({
   onRemoveMuscle,
   onAddMuscle,
   availableMuscles,
+  groupConfig,
+  muscleIdFn,
+  forceCollapsed = false,
 }: SortableGroupRowProps): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Temporarily collapse during group drag for cleaner UX
+  const showExpanded = isExpanded && !forceCollapsed;
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(group.name);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -66,14 +64,6 @@ export function SortableGroupRow({
     transform: CSS.Transform.toString(transform),
     transition,
   };
-
-  // Sensors for muscle drag-and-drop
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   const handleSaveName = (): void => {
     const trimmedName = editName.trim();
@@ -114,16 +104,6 @@ export function SortableGroupRow({
     onAddMuscle(muscle, group.id);
   };
 
-  const handleMuscleDragEnd = (event: DragEndEvent): void => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = group.muscles.indexOf(active.id as ScientificMuscle);
-      const newIndex = group.muscles.indexOf(over.id as ScientificMuscle);
-      const reordered = arrayMove(group.muscles, oldIndex, newIndex);
-      onUpdate({ ...group, muscles: reordered });
-    }
-  };
-
   return (
     <>
       <div
@@ -150,7 +130,7 @@ export function SortableGroupRow({
             className="text-primary-400 transition-transform hover:text-white"
           >
             <ChevronRight
-              className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+              className={`h-5 w-5 transition-transform ${showExpanded ? 'rotate-90' : ''}`}
             />
           </button>
 
@@ -215,29 +195,24 @@ export function SortableGroupRow({
           )}
         </div>
 
-        {/* Expanded content */}
-        {isExpanded && (
+        {/* Expanded content - SortableContext for muscles within this group */}
+        {showExpanded && (
           <div className="border-t border-primary-600 p-3">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleMuscleDragEnd}
+            <SortableContext
+              items={group.muscles.map(muscleIdFn)}
+              strategy={verticalListSortingStrategy}
             >
-              <SortableContext
-                items={group.muscles}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-2">
-                  {group.muscles.map((muscle) => (
-                    <SortableMuscleItem
-                      key={muscle}
-                      muscle={muscle}
-                      onRemove={handleRemoveMuscle}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
+              <div className="space-y-2">
+                {group.muscles.map((muscle) => (
+                  <SortableMuscleItem
+                    key={muscle}
+                    muscle={muscle}
+                    id={muscleIdFn(muscle)}
+                    onRemove={handleRemoveMuscle}
+                  />
+                ))}
+              </div>
+            </SortableContext>
 
             {/* Add muscle button */}
             <button
@@ -258,6 +233,7 @@ export function SortableGroupRow({
         onClose={() => setPickerOpen(false)}
         availableMuscles={availableMuscles}
         onSelect={handleAddMuscle}
+        groupConfig={groupConfig}
       />
 
       {/* Delete confirmation */}

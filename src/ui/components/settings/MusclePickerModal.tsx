@@ -2,18 +2,19 @@
  * MusclePickerModal
  *
  * Modal to select muscles to add to a group.
- * Groups available muscles by UI_MUSCLE_GROUPS for easier scanning.
+ * Groups available muscles by custom muscle groupings for consistency.
  */
 
 import { X } from 'lucide-react';
 import type { ScientificMuscle } from '@core/taxonomy';
-import { UI_MUSCLE_GROUPS } from '@core/taxonomy';
+import type { MuscleGroupConfig } from '@db/schema';
 
 interface MusclePickerModalProps {
   isOpen: boolean;
   onClose: () => void;
   availableMuscles: ScientificMuscle[];
   onSelect: (muscle: ScientificMuscle) => void;
+  groupConfig: MuscleGroupConfig;
 }
 
 export function MusclePickerModal({
@@ -21,6 +22,7 @@ export function MusclePickerModal({
   onClose,
   availableMuscles,
   onSelect,
+  groupConfig,
 }: MusclePickerModalProps): React.ReactElement | null {
   if (!isOpen) {
     return null;
@@ -28,11 +30,37 @@ export function MusclePickerModal({
 
   const availableSet = new Set(availableMuscles);
 
-  // Group available muscles by UI_MUSCLE_GROUPS
-  const groupedMuscles = UI_MUSCLE_GROUPS.map((group) => ({
-    name: group.name,
-    muscles: group.muscles.filter((m) => availableSet.has(m)),
-  })).filter((group) => group.muscles.length > 0);
+  // Group available muscles by user's custom group configuration
+  const groupedMuscles: { name: string; muscles: ScientificMuscle[] }[] = [];
+
+  // First add muscles from custom groups
+  for (const group of groupConfig.groups) {
+    const musclesInGroup = group.muscles.filter((m) => availableSet.has(m));
+    if (musclesInGroup.length > 0) {
+      groupedMuscles.push({
+        name: group.name,
+        muscles: musclesInGroup,
+      });
+    }
+  }
+
+  // Then add ungrouped muscles
+  const ungroupedMuscles = groupConfig.ungrouped.filter((m) => availableSet.has(m));
+  if (ungroupedMuscles.length > 0) {
+    groupedMuscles.push({
+      name: 'Ungrouped',
+      muscles: ungroupedMuscles,
+    });
+  }
+
+  // Finally add hidden muscles
+  const hiddenMuscles = groupConfig.hidden.filter((m) => availableSet.has(m));
+  if (hiddenMuscles.length > 0) {
+    groupedMuscles.push({
+      name: 'Hidden',
+      muscles: hiddenMuscles,
+    });
+  }
 
   const handleSelect = (muscle: ScientificMuscle): void => {
     onSelect(muscle);

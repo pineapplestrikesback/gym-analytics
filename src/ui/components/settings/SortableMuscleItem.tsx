@@ -12,11 +12,13 @@ import type { ScientificMuscle } from '@core/taxonomy';
 
 interface SortableMuscleItemProps {
   muscle: ScientificMuscle;
+  id: string;
   onRemove: (muscle: ScientificMuscle) => void;
 }
 
 export function SortableMuscleItem({
   muscle,
+  id,
   onRemove,
 }: SortableMuscleItemProps): React.ReactElement {
   const {
@@ -26,7 +28,7 @@ export function SortableMuscleItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: muscle });
+  } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
