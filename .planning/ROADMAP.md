@@ -174,7 +174,7 @@ Plans:
 **Goal**: Users can customize how muscles are grouped in Settings
 **Depends on**: Phase 5
 **Requirements**: GROUP-01, GROUP-02, GROUP-03, GROUP-04, GROUP-05
-**Plans**: TBD
+**Plans**: 3 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -186,9 +186,9 @@ Plans:
 
 Plans:
 
-- [ ] 09-01: Add database schema for custom groupings
-- [ ] 09-02: Create Settings UI for group management
-- [ ] 09-03: Integrate custom groupings into muscle list display
+- [ ] 09-01-PLAN.md - Schema types, default config, and useMuscleGroups hook
+- [ ] 09-02-PLAN.md - Settings UI with drag-and-drop group editor
+- [ ] 09-03-PLAN.md - Integrate custom groups into MobileMuscleList and MobileHeatmap
 
 ## Progress
 
@@ -210,4 +210,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-23 (Phase 8 complete)_
+_Last updated: 2026-01-23 (Phase 9 planned)_
