@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-01-18)
 ## Current Position
 
 Phase: 9 of 9 (Custom Grouping)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-23 - Completed 09-01-PLAN.md (Data Layer)
+Last activity: 2026-01-23 - Completed 09-02-PLAN.md (Settings UI)
 
-Progress: [==============] 93%
+Progress: [===============] 94%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 15
-- Average duration: 5.5 min (including user testing iterations)
-- Total execution time: 92 min
+- Total plans completed: 16
+- Average duration: 6.25 min (including user testing iterations)
+- Total execution time: 100 min
 
 **By Phase:**
 
@@ -36,12 +36,12 @@ Progress: [==============] 93%
 | 06-carousel-navigation  | 2     | 7 min  | 3.5 min  |
 | 07-detail-pop-up        | 2     | 47 min | 23.5 min |
 | 08-tap-interactions     | 2     | 10 min | 5 min    |
-| 09-custom-grouping      | 1     | 3 min  | 3 min    |
+| 09-custom-grouping      | 2     | 11 min | 5.5 min  |
 
 **Recent Trend:**
 
-- Plan 09-01 completed in 3 min (data layer foundation)
-- Trend: Pure data/hook tasks complete faster than UI tasks
+- Plan 09-02 completed in 8 min (Settings UI with dnd-kit)
+- Trend: UI tasks with new libraries take moderate time
 
 _Updated after each plan completion_
 
@@ -85,6 +85,9 @@ Recent decisions affecting current work:
 - 4 default muscle groups (Push, Pull, Legs, Core) - arms distributed into Push/Pull
 - MAX_GROUPS = 8 enforced at validation level
 - Optional customMuscleGroups field - no schema migration needed
+- Nested DndContext pattern for independent group and muscle sorting
+- crypto.randomUUID() for new group IDs (guaranteed uniqueness for dnd-kit)
+- Ungrouped section shows muscles at top priority, Hidden excludes from display
 
 ### Patterns Established
 
@@ -134,6 +137,10 @@ Recent decisions affecting current work:
 - **GROUP-CONFIG-01:** useEffectiveMuscleGroupConfig returns isUsingDefault flag for UI
 - **GROUP-CONFIG-02:** validateMuscleGroupConfig checks all 26 muscles accounted for
 - **GROUP-CONFIG-03:** moveMuscle removes from all locations before adding to target
+- **DND-SETTINGS-01:** Parent DndContext for group reorder, child DndContext per group for muscle reorder
+- **DND-SETTINGS-02:** useSortable with verticalListSortingStrategy for accordion items
+- **MODAL-SETTINGS-01:** Render null when closed for zero DOM overhead
+- **CONFIRM-01:** ConfirmationDialog for destructive actions (delete group, reset to defaults)
 
 ### Pending Todos
 
@@ -141,10 +148,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Plan 09-01 complete.
+None - Plan 09-02 complete.
 
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 09-01-PLAN.md
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None
