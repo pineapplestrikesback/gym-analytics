@@ -23,9 +23,13 @@ import type { BodyRegion } from './MobileHeatmap';
 interface MuscleDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  region: BodyRegion | null;
-  primaryMuscles: ScientificMuscle[];
+  // Region mode (for heatmap)
+  region?: BodyRegion | null;
+  primaryMuscles?: ScientificMuscle[];
   relatedMuscles?: ScientificMuscle[];
+  // Single muscle mode (for list)
+  muscle?: ScientificMuscle | null;
+  // Common
   profileId: string | null;
   daysBack?: number;
 }
@@ -98,11 +102,14 @@ export function MuscleDetailModal({
   isOpen,
   onClose,
   region,
-  primaryMuscles,
+  primaryMuscles = [],
   relatedMuscles,
+  muscle,
   profileId,
   daysBack = 7,
 }: MuscleDetailModalProps): React.ReactElement | null {
+  // Determine mode: single muscle vs region
+  const isSingleMuscleMode = muscle !== undefined && muscle !== null;
   // Fetch volume data for all muscles
   const { stats } = useScientificMuscleVolume(profileId, daysBack);
 
@@ -111,15 +118,17 @@ export function MuscleDetailModal({
     return new Map<string, VolumeStatItem>(stats.map((s) => [s.name, s]));
   }, [stats]);
 
-  // Get data for primary and related muscles
-  const primaryData = useMemo(
-    () => getMuscleData(primaryMuscles, statsMap),
-    [primaryMuscles, statsMap]
-  );
+  // Get data for primary and related muscles (or single muscle)
+  const primaryData = useMemo(() => {
+    if (isSingleMuscleMode && muscle) {
+      return getMuscleData([muscle], statsMap);
+    }
+    return getMuscleData(primaryMuscles, statsMap);
+  }, [isSingleMuscleMode, muscle, primaryMuscles, statsMap]);
 
   const relatedData = useMemo(
-    () => (relatedMuscles ? getMuscleData(relatedMuscles, statsMap) : []),
-    [relatedMuscles, statsMap]
+    () => (relatedMuscles && !isSingleMuscleMode ? getMuscleData(relatedMuscles, statsMap) : []),
+    [relatedMuscles, isSingleMuscleMode, statsMap]
   );
 
   // Escape key dismiss
@@ -160,8 +169,15 @@ export function MuscleDetailModal({
   };
 
   // Don't render if modal is closed or no data to show
-  if (!isOpen || region === null || primaryMuscles.length === 0) {
+  // Single muscle mode: need muscle to be provided
+  // Region mode: need region and primaryMuscles
+  if (!isOpen) {
     return null;
+  }
+  if (isSingleMuscleMode) {
+    if (!muscle) return null;
+  } else {
+    if (region === null || primaryMuscles.length === 0) return null;
   }
 
   // Format region name for display (camelCase to Title Case)
@@ -169,15 +185,22 @@ export function MuscleDetailModal({
     return r.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
   };
 
+  // Get header text based on mode
+  const headerText = isSingleMuscleMode && muscle
+    ? muscle
+    : region
+      ? formatRegionName(region)
+      : '';
+
   return createPortal(
     <div
       className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-56 bg-primary-800 rounded-lg shadow-xl border border-primary-700 overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Header with region name and X button */}
+      {/* Header with region/muscle name and X button */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-primary-700">
-        <span className="text-xs font-medium text-primary-300">{formatRegionName(region)}</span>
+        <span className="text-xs font-medium text-primary-300">{headerText}</span>
         <button
           onClick={onClose}
           className="min-w-[32px] min-h-[32px] flex items-center justify-center text-primary-400 hover:text-primary-200 transition-colors -mr-1"
