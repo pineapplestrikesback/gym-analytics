@@ -5,41 +5,41 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 7 - Detail Pop-up (Plan 1 complete)
+**Current focus:** Phase 8 - Tap Interactions (ready to plan)
 
 ## Current Position
 
-Phase: 7 of 9 (Detail Pop-up)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-23 - Completed 07-01-PLAN.md
+Phase: 8 of 9 (Tap Interactions)
+Plan: 0 of 3 in current phase
+Status: Ready to plan
+Last activity: 2026-01-23 - Completed Phase 7 (Detail Pop-up)
 
-Progress: [==========] 85%
+Progress: [==========] 88%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 11
-- Average duration: 2.6 min
-- Total execution time: 32 min
+- Total plans completed: 12
+- Average duration: 5.8 min (including user testing iterations)
+- Total execution time: 79 min
 
 **By Phase:**
 
-| Phase                   | Plans | Total | Avg/Plan |
-| ----------------------- | ----- | ----- | -------- |
-| 01-component-foundation | 1     | 4 min | 4 min    |
-| 02-visual-system        | 2     | 7 min | 3.5 min  |
-| 03-heatmap-core         | 2     | 7 min | 3.5 min  |
-| 04-front-back-toggle    | 1     | 2 min | 2 min    |
-| 05-muscle-list          | 2     | 3 min | 1.5 min  |
-| 06-carousel-navigation  | 2     | 7 min | 3.5 min  |
-| 07-detail-pop-up        | 1     | 2 min | 2 min    |
+| Phase                   | Plans | Total  | Avg/Plan |
+| ----------------------- | ----- | ------ | -------- |
+| 01-component-foundation | 1     | 4 min  | 4 min    |
+| 02-visual-system        | 2     | 7 min  | 3.5 min  |
+| 03-heatmap-core         | 2     | 7 min  | 3.5 min  |
+| 04-front-back-toggle    | 1     | 2 min  | 2 min    |
+| 05-muscle-list          | 2     | 3 min  | 1.5 min  |
+| 06-carousel-navigation  | 2     | 7 min  | 3.5 min  |
+| 07-detail-pop-up        | 2     | 47 min | 23.5 min |
 
 **Recent Trend:**
 
-- Last 5 plans: 1 min, 2 min, 2 min, 5 min, 2 min
-- Trend: Stable (consistently fast on focused plans)
+- Phase 7 took longer due to debugging (library onClick) and UX iteration
+- Trend: Interactive features require more testing time
 
 _Updated after each plan completion_
 
@@ -116,6 +116,12 @@ Recent decisions affecting current work:
 - **MODAL-02:** Body scroll lock via document.body.style.overflow = 'hidden'
 - **MODAL-03:** Touch guard pattern with optional chaining for touch events
 - **MODAL-04:** 44x44px minimum touch target for close button accessibility
+- **MODAL-05:** Floating panel positioned at bottom-20 for non-blocking UX
+- **MODAL-06:** Primary/related muscle separation with horizontal divider
+- **REGION-01:** Primary muscles affect heatmap color, related muscles shown in modal only
+- **REGION-02:** Combined hipFlexors region for hip flexors + adductors
+- **REGION-03:** Traps mapped to 'neck' for front view visibility
+- **CLICK-01:** Use library onClick prop instead of DOM event listeners (polygons have no IDs)
 
 ### Pending Todos
 
@@ -123,10 +129,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Plan 07-01 complete, MuscleDetailModal ready for integration.
+None - Phase 7 complete.
 
 ## Session Continuity
 
-Last session: 2026-01-23T13:37:38Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-01-23
+Stopped at: Completed Phase 7
 Resume file: None

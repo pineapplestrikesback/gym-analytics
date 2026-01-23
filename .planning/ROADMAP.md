@@ -17,7 +17,7 @@ This roadmap transforms the muscle heatmap from a label-cluttered display into a
 - [x] **Phase 4: Front/Back Toggle** - Rotation-style view switching
 - [x] **Phase 5: Muscle List** - Grouped list with progress bars
 - [x] **Phase 6: Carousel Navigation** - Swipeable two-slide interface
-- [ ] **Phase 7: Detail Pop-up** - Muscle detail overlay component
+- [x] **Phase 7: Detail Pop-up** - Muscle detail overlay component
 - [ ] **Phase 8: Tap Interactions** - Connect taps to pop-up system
 - [ ] **Phase 9: Custom Grouping** - User-configurable muscle groups in Settings
 
@@ -148,8 +148,8 @@ Plans:
 
 Plans:
 
-- [ ] 07-01-PLAN.md - Create modal component with muscle list layout and all dismiss behaviors
-- [ ] 07-02-PLAN.md - Integrate modal into MobileHeatmap with SVG highlighting and auto-close on flip
+- [x] 07-01-PLAN.md - Create modal component with muscle list layout and all dismiss behaviors
+- [x] 07-02-PLAN.md - Integrate modal into MobileHeatmap with SVG highlighting and auto-close on flip
 
 ### Phase 8: Tap Interactions
 
@@ -204,7 +204,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 4. Front/Back Toggle    | 1/1            | Complete    | 2026-01-19 |
 | 5. Muscle List          | 2/2            | Complete    | 2026-01-22 |
 | 6. Carousel Navigation  | 2/2            | Complete    | 2026-01-23 |
-| 7. Detail Pop-up        | 0/2            | Not started | -          |
+| 7. Detail Pop-up        | 2/2            | Complete    | 2026-01-23 |
 | 8. Tap Interactions     | 0/3            | Not started | -          |
 | 9. Custom Grouping      | 0/3            | Not started | -          |
 
