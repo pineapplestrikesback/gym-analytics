@@ -10,10 +10,12 @@
  */
 
 import { useState, useMemo } from 'react';
-import { UI_MUSCLE_GROUPS, type ScientificMuscle } from '@core/taxonomy';
+import { UI_MUSCLE_GROUPS } from '@core/taxonomy';
 import { useScientificMuscleVolume, type VolumeStatItem } from '@db/hooks/useVolumeStats';
 import { getVolumeColor } from '@core/color-scale';
-import { MuscleDetailModal } from './MuscleDetailModal';
+// TODO: Re-enable modal when we have more detailed data to show
+// import { MuscleDetailModal } from './MuscleDetailModal';
+// import type { ScientificMuscle } from '@core/taxonomy';
 
 interface MobileMuscleListProps {
   profileId: string | null;
@@ -44,8 +46,8 @@ export function MobileMuscleList({
     return new Map<string, VolumeStatItem>(stats.map((s) => [s.name, s]));
   }, [stats]);
 
-  // Selected muscle for detail modal
-  const [selectedMuscle, setSelectedMuscle] = useState<ScientificMuscle | null>(null);
+  // TODO: Re-enable modal when we have more detailed data to show
+  // const [selectedMuscle, setSelectedMuscle] = useState<ScientificMuscle | null>(null);
 
   // Start with first group expanded (mobile-optimized: less initial scrolling)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
@@ -83,7 +85,6 @@ export function MobileMuscleList({
   }
 
   return (
-    <>
     <div className="space-y-2">
       {UI_MUSCLE_GROUPS.map((group) => {
         const isExpanded = expandedGroups.has(group.name);
@@ -129,11 +130,11 @@ export function MobileMuscleList({
                   const percentage = muscleStats?.percentage ?? 0;
 
                   return (
-                    <button
+                    <div
                       key={muscle}
-                      onClick={() => setSelectedMuscle(muscle as ScientificMuscle)}
-                      className="w-full text-left active:bg-primary-700/50 transition-colors duration-75 rounded-md -mx-1 px-1 py-1"
+                      className="rounded-md -mx-1 px-1 py-1"
                     >
+                      {/* TODO: Re-enable tap-to-modal when we have more detailed data */}
                       <div className="space-y-1">
                         {/* Line 1: Muscle name (left) + volume/goal ratio (right) */}
                         <div className="flex items-center justify-between">
@@ -156,7 +157,7 @@ export function MobileMuscleList({
                           />
                         </div>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -165,15 +166,13 @@ export function MobileMuscleList({
         );
       })}
     </div>
-
-    {/* Muscle Detail Modal */}
-    <MuscleDetailModal
-      isOpen={selectedMuscle !== null}
-      onClose={() => setSelectedMuscle(null)}
-      muscle={selectedMuscle}
-      profileId={profileId}
-      daysBack={daysBack}
-    />
-    </>
   );
+  // TODO: Re-enable modal when we have more detailed data to show
+  // <MuscleDetailModal
+  //   isOpen={selectedMuscle !== null}
+  //   onClose={() => setSelectedMuscle(null)}
+  //   muscle={selectedMuscle}
+  //   profileId={profileId}
+  //   daysBack={daysBack}
+  // />
 }
