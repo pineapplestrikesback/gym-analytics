@@ -12,6 +12,7 @@ import { useMemo, useId, useState, useCallback } from 'react';
 import Model from 'react-body-highlighter';
 import type { IExerciseData, Muscle } from 'react-body-highlighter';
 import { useScientificMuscleVolume } from '@db/hooks';
+import { useEffectiveMuscleGroupConfig } from '@db/hooks/useMuscleGroups';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { getVolumeColor, getNoTargetColor } from '@core/color-scale';
 import { useSessionState } from '@ui/hooks/use-session-state';
@@ -115,6 +116,7 @@ const HIGHLIGHTED_COLORS = [
   getVolumeColor(100), // frequency 5: 100%+
   'rgb(245, 158, 11)', // frequency 6: selected state (amber highlight)
   'rgb(255, 255, 255)', // frequency 7: tap animation (white flash)
+  'rgb(55, 65, 81)', // frequency 8: hidden muscle (gray - primary-700 equivalent)
 ];
 
 interface MuscleStats {
@@ -130,12 +132,19 @@ interface MuscleStats {
  */
 export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+  const { config } = useEffectiveMuscleGroupConfig(profileId);
   const [view, setView] = useSessionState<'front' | 'back'>(
     'scientificmuscle_heatmap_view',
     'front'
   );
   const [selectedRegion, setSelectedRegion] = useState<BodyRegion | null>(null);
   const [tappedRegion, setTappedRegion] = useState<BodyRegion | null>(null);
+
+  // Create set of hidden muscles for quick lookup
+  const hiddenMuscles = useMemo(
+    () => new Set<ScientificMuscle>(config.hidden),
+    [config.hidden]
+  );
 
   // Map stats to muscle-level data
   const muscleStats = useMemo((): MuscleStats[] => {
@@ -153,23 +162,34 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
   }, [muscleStats]);
 
   // Calculate regional stats for body highlighting (only primary muscles affect color)
+  // Regions with all primary muscles hidden are marked with isHidden: true
   const regionStats = useMemo(() => {
-    const regions = new Map<BodyRegion, { percentage: number }>();
+    const regions = new Map<BodyRegion, { percentage: number; isHidden: boolean }>();
 
     for (const [region, { primary }] of Object.entries(REGION_TO_MUSCLES)) {
-      const muscleData = primary
-        .map((m) => statsMap.get(m))
-        .filter((s): s is MuscleStats => s !== undefined);
+      // Check if all primary muscles in this region are hidden
+      const visibleMuscles = primary.filter((m) => !hiddenMuscles.has(m));
+      const isHidden = visibleMuscles.length === 0;
 
-      const totalVolume = muscleData.reduce((sum, s) => sum + s.volume, 0);
-      const totalGoal = muscleData.reduce((sum, s) => sum + s.goal, 0);
-      const percentage = totalGoal > 0 ? (totalVolume / totalGoal) * 100 : 0;
+      if (isHidden) {
+        // All muscles in this region are hidden - use special flag
+        regions.set(region as BodyRegion, { percentage: 0, isHidden: true });
+      } else {
+        // Calculate stats based on visible muscles only
+        const muscleData = visibleMuscles
+          .map((m) => statsMap.get(m))
+          .filter((s): s is MuscleStats => s !== undefined);
 
-      regions.set(region as BodyRegion, { percentage });
+        const totalVolume = muscleData.reduce((sum, s) => sum + s.volume, 0);
+        const totalGoal = muscleData.reduce((sum, s) => sum + s.goal, 0);
+        const percentage = totalGoal > 0 ? (totalVolume / totalGoal) * 100 : 0;
+
+        regions.set(region as BodyRegion, { percentage, isHidden: false });
+      }
     }
 
     return regions;
-  }, [statsMap]);
+  }, [statsMap, hiddenMuscles]);
 
   // Loading state
   if (isLoading) {
@@ -318,7 +338,7 @@ function MobileBodyHighlighter({
   onTap,
 }: {
   type: 'anterior' | 'posterior';
-  regionStats: Map<BodyRegion, { percentage: number }>;
+  regionStats: Map<BodyRegion, { percentage: number; isHidden: boolean }>;
   selectedRegion: BodyRegion | null;
   tappedRegion: BodyRegion | null;
   onRegionClick: (region: BodyRegion | null) => void;
@@ -336,9 +356,11 @@ function MobileBodyHighlighter({
       const muscles = REGION_TO_LIBRARY_MUSCLES[region][viewKey];
 
       if (muscles.length > 0) {
-        // Priority: tap animation (7) > selected (6) > volume-based color
-        const frequency =
-          tappedRegion === region
+        // Priority: hidden (8) > tap animation (7) > selected (6) > volume-based color
+        // Note: hidden regions can still be tapped/selected for visual feedback
+        const frequency = stats.isHidden
+          ? 8 // Hidden muscle (gray)
+          : tappedRegion === region
             ? 7 // Tap animation (highest priority - white flash)
             : selectedRegion === region
               ? 6 // Selected state (amber highlight)
