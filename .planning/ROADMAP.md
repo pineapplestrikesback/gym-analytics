@@ -138,7 +138,7 @@ Plans:
 **Goal**: Modal component displays individual muscle details
 **Depends on**: Phase 2
 **Requirements**: DETAIL-01, DETAIL-02, DETAIL-03
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -148,8 +148,8 @@ Plans:
 
 Plans:
 
-- [ ] 07-01: Create modal component with muscle detail layout
-- [ ] 07-02: Implement dismiss behavior and heatmap highlighting
+- [ ] 07-01-PLAN.md - Create modal component with muscle list layout and all dismiss behaviors
+- [ ] 07-02-PLAN.md - Integrate modal into MobileHeatmap with SVG highlighting and auto-close on flip
 
 ### Phase 8: Tap Interactions
 
@@ -211,4 +211,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-23 (Phase 6 complete)_
+_Last updated: 2026-01-23 (Phase 7 planned)_
