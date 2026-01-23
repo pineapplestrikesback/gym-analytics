@@ -10,9 +10,10 @@
  */
 
 import { useState, useMemo } from 'react';
-import { UI_MUSCLE_GROUPS } from '@core/taxonomy';
+import { UI_MUSCLE_GROUPS, type ScientificMuscle } from '@core/taxonomy';
 import { useScientificMuscleVolume, type VolumeStatItem } from '@db/hooks/useVolumeStats';
 import { getVolumeColor } from '@core/color-scale';
+import { MuscleDetailModal } from './MuscleDetailModal';
 
 interface MobileMuscleListProps {
   profileId: string | null;
@@ -43,6 +44,8 @@ export function MobileMuscleList({
     return new Map<string, VolumeStatItem>(stats.map((s) => [s.name, s]));
   }, [stats]);
 
+  // Selected muscle for detail modal
+  const [selectedMuscle, setSelectedMuscle] = useState<ScientificMuscle | null>(null);
 
   // Start with first group expanded (mobile-optimized: less initial scrolling)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
@@ -80,6 +83,7 @@ export function MobileMuscleList({
   }
 
   return (
+    <>
     <div className="space-y-2">
       {UI_MUSCLE_GROUPS.map((group) => {
         const isExpanded = expandedGroups.has(group.name);
@@ -125,28 +129,34 @@ export function MobileMuscleList({
                   const percentage = muscleStats?.percentage ?? 0;
 
                   return (
-                    <div key={muscle} className="space-y-1">
-                      {/* Line 1: Muscle name (left) + volume/goal ratio (right) */}
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-primary-200">
-                          {muscle}
-                        </span>
-                        <span className="text-xs text-primary-400 font-mono">
-                          {formatVolume(volume)}/{formatVolume(goal)}
-                        </span>
-                      </div>
+                    <button
+                      key={muscle}
+                      onClick={() => setSelectedMuscle(muscle as ScientificMuscle)}
+                      className="w-full text-left active:bg-primary-700/50 transition-colors duration-75 rounded-md -mx-1 px-1 py-1"
+                    >
+                      <div className="space-y-1">
+                        {/* Line 1: Muscle name (left) + volume/goal ratio (right) */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-primary-200">
+                            {muscle}
+                          </span>
+                          <span className="text-xs text-primary-400 font-mono">
+                            {formatVolume(volume)}/{formatVolume(goal)}
+                          </span>
+                        </div>
 
-                      {/* Line 2: Progress bar - 4px tall (h-1), full width */}
-                      <div className="w-full h-1 overflow-hidden rounded-full bg-primary-800">
-                        <div
-                          className="h-full rounded-full transition-all duration-300"
-                          style={{
-                            width: `${Math.min(percentage, 100)}%`,
-                            backgroundColor: getVolumeColor(percentage),
-                          }}
-                        />
+                        {/* Line 2: Progress bar - 4px tall (h-1), full width */}
+                        <div className="w-full h-1 overflow-hidden rounded-full bg-primary-800">
+                          <div
+                            className="h-full rounded-full transition-all duration-300"
+                            style={{
+                              width: `${Math.min(percentage, 100)}%`,
+                              backgroundColor: getVolumeColor(percentage),
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -155,5 +165,15 @@ export function MobileMuscleList({
         );
       })}
     </div>
+
+    {/* Muscle Detail Modal */}
+    <MuscleDetailModal
+      isOpen={selectedMuscle !== null}
+      onClose={() => setSelectedMuscle(null)}
+      muscle={selectedMuscle}
+      profileId={profileId}
+      daysBack={daysBack}
+    />
+    </>
   );
 }
