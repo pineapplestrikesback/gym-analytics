@@ -34,6 +34,8 @@ interface SortableGroupRowProps {
   group: CustomMuscleGroup;
   onUpdate: (group: CustomMuscleGroup) => void;
   onDelete: (groupId: string) => void;
+  onRemoveMuscle: (muscle: ScientificMuscle) => void;
+  onAddMuscle: (muscle: ScientificMuscle, groupId: string) => void;
   availableMuscles: ScientificMuscle[];
 }
 
@@ -41,6 +43,8 @@ export function SortableGroupRow({
   group,
   onUpdate,
   onDelete,
+  onRemoveMuscle,
+  onAddMuscle,
   availableMuscles,
 }: SortableGroupRowProps): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -101,12 +105,13 @@ export function SortableGroupRow({
   };
 
   const handleRemoveMuscle = (muscle: ScientificMuscle): void => {
-    const updatedMuscles = group.muscles.filter((m) => m !== muscle);
-    onUpdate({ ...group, muscles: updatedMuscles });
+    // Move muscle to ungrouped section via parent callback
+    onRemoveMuscle(muscle);
   };
 
   const handleAddMuscle = (muscle: ScientificMuscle): void => {
-    onUpdate({ ...group, muscles: [...group.muscles, muscle] });
+    // Use parent callback which handles moving from other locations via moveMuscle
+    onAddMuscle(muscle, group.id);
   };
 
   const handleMuscleDragEnd = (event: DragEndEvent): void => {

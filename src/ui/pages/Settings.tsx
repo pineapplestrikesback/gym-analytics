@@ -330,6 +330,7 @@ export function Settings(): React.ReactElement {
       <section className="rounded-lg bg-primary-700 p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">Weekly Goals</h3>
         <WeeklyGoalEditor
+          profileId={currentProfile.id}
           goals={currentProfile.goals}
           totalGoal={currentProfile.totalGoal}
           onSave={handleSaveGoals}

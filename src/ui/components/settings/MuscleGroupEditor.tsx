@@ -153,6 +153,18 @@ export function MuscleGroupEditor({
     void save(newConfig);
   };
 
+  // Handle remove muscle from group (moves to ungrouped)
+  const handleRemoveMuscleFromGroup = (muscle: ScientificMuscle): void => {
+    const newConfig = moveMuscle(config, muscle, { type: 'ungrouped' });
+    void save(newConfig);
+  };
+
+  // Handle add muscle to group (moves from any location)
+  const handleAddMuscleToGroup = (muscle: ScientificMuscle, groupId: string): void => {
+    const newConfig = moveMuscle(config, muscle, { type: 'group', groupId });
+    void save(newConfig);
+  };
+
   // Handle reset to defaults
   const handleReset = async (): Promise<void> => {
     try {
@@ -163,22 +175,16 @@ export function MuscleGroupEditor({
     }
   };
 
-  // Get available muscles for a specific group (excludes muscles in other groups)
+  // Get available muscles for a specific group (all muscles NOT already in this group)
+  // This allows moving muscles between groups via the picker
   const getAvailableMusclesForGroup = (
     groupId: string
   ): ScientificMuscle[] => {
-    const otherGroupMuscles = new Set<ScientificMuscle>();
-    config.groups
-      .filter((g) => g.id !== groupId)
-      .forEach((g) => g.muscles.forEach((m) => otherGroupMuscles.add(m)));
+    const currentGroup = config.groups.find((g) => g.id === groupId);
+    const currentGroupMuscles = new Set<ScientificMuscle>(currentGroup?.muscles ?? []);
 
-    return SCIENTIFIC_MUSCLES.filter(
-      (m) =>
-        !otherGroupMuscles.has(m) &&
-        (config.ungrouped.includes(m) ||
-          config.hidden.includes(m) ||
-          !allAssignedMuscles.has(m))
-    );
+    // Return all muscles not in the current group
+    return SCIENTIFIC_MUSCLES.filter((m) => !currentGroupMuscles.has(m));
   };
 
   if (isLoading) {
@@ -283,6 +289,8 @@ export function MuscleGroupEditor({
                 group={group}
                 onUpdate={handleUpdateGroup}
                 onDelete={handleDeleteGroup}
+                onRemoveMuscle={handleRemoveMuscleFromGroup}
+                onAddMuscle={handleAddMuscleToGroup}
                 availableMuscles={getAvailableMusclesForGroup(group.id)}
               />
             ))}
