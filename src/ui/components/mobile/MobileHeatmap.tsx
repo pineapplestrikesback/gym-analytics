@@ -15,6 +15,7 @@ import { useScientificMuscleVolume } from '@db/hooks';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { getVolumeColor, getNoTargetColor } from '@core/color-scale';
 import { useSessionState } from '@ui/hooks/use-session-state';
+import { MuscleDetailModal } from './MuscleDetailModal';
 
 interface MobileHeatmapProps {
   profileId: string | null;
@@ -39,6 +40,8 @@ type BodyRegion =
   | 'glutes'
   | 'calves'
   | 'adductors';
+
+export type { BodyRegion };
 
 /**
  * Mapping from body regions to scientific muscles
@@ -190,8 +193,9 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
     );
   }
 
-  // Toggle view handler
+  // Toggle view handler - clear selection when flipping (auto-close modal)
   const toggleView = (): void => {
+    setSelectedRegion(null);
     setView(view === 'front' ? 'back' : 'front');
   };
 
@@ -273,6 +277,16 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
           <span>{view === 'front' ? 'Back' : 'Front'}</span>
         </span>
       </button>
+
+      {/* Muscle Detail Modal */}
+      <MuscleDetailModal
+        isOpen={selectedRegion !== null}
+        onClose={() => setSelectedRegion(null)}
+        region={selectedRegion}
+        muscles={selectedRegion ? REGION_TO_MUSCLES[selectedRegion] : []}
+        profileId={profileId}
+        daysBack={daysBack}
+      />
     </div>
   );
 }

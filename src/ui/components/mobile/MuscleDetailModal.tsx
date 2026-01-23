@@ -22,26 +22,7 @@ import { createPortal } from 'react-dom';
 import { useScientificMuscleVolume, type VolumeStatItem } from '@db/hooks/useVolumeStats';
 import { getVolumeColor } from '@core/color-scale';
 import type { ScientificMuscle } from '@core/taxonomy';
-
-/**
- * Body regions for anatomical grouping
- * (Copied from MobileHeatmap - not exported there)
- */
-type BodyRegion =
-  | 'chest'
-  | 'shoulders'
-  | 'upperBack'
-  | 'lowerBack'
-  | 'biceps'
-  | 'triceps'
-  | 'forearms'
-  | 'abs'
-  | 'obliques'
-  | 'quads'
-  | 'hamstrings'
-  | 'glutes'
-  | 'calves'
-  | 'adductors';
+import type { BodyRegion } from './MobileHeatmap';
 
 interface MuscleDetailModalProps {
   isOpen: boolean;
