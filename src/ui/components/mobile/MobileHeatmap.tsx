@@ -418,6 +418,17 @@ function MobileBodyHighlighter({
             stroke-width: 0.75px;
           }
         }
+
+        ${selectedRegion ? `
+        /* Selected region highlighting - white stroke when modal open */
+        ${REGION_TO_LIBRARY_MUSCLES[selectedRegion][type === 'anterior' ? 'front' : 'back']
+          .map((muscle) => `[data-mobile-heatmap="${scopeId}"] .rbh polygon#${muscle}`)
+          .join(',\n        ')} {
+          stroke: white;
+          stroke-width: 2px;
+          stroke-opacity: 0.8;
+        }
+        ` : ''}
       `}</style>
     </>
   );
