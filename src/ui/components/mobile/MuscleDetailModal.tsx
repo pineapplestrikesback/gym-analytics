@@ -1,20 +1,16 @@
 /**
- * Muscle Detail Modal Component
+ * Muscle Detail Panel Component
  *
- * Portal-based modal that displays individual muscle details for a tapped body region.
- * Shows muscles within the region with name, current/goal ratio, and progress bar.
+ * Floating panel that displays individual muscle details for a tapped body region.
+ * Shows primary muscles (affect region color) and optionally related muscles
+ * (shown below separator, don't affect color).
  *
  * Features:
- * - React portal rendering at document.body (avoids z-index stacking issues)
- * - Body scroll locking when open
- * - Fade-in animation
- * - Compact spacing for modal context
- *
- * Pattern references:
- * - Portal: AutoMatchReviewModal pattern
- * - Data: useScientificMuscleVolume for muscle-level volume
- * - Layout: MobileMuscleList two-line pattern (adapted for compact modal)
- * - Colors: @core/color-scale for volume-to-color mapping
+ * - Non-blocking: allows clicking other muscles while open
+ * - Compact width for mobile
+ * - Positioned at bottom of viewport (above navigation)
+ * - Swipe down to dismiss
+ * - Separator between primary and related muscles
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -28,9 +24,17 @@ interface MuscleDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   region: BodyRegion | null;
-  muscles: ScientificMuscle[];
+  primaryMuscles: ScientificMuscle[];
+  relatedMuscles?: ScientificMuscle[];
   profileId: string | null;
   daysBack?: number;
+}
+
+interface MuscleData {
+  name: string;
+  volume: number;
+  goal: number;
+  percentage: number;
 }
 
 /**
@@ -42,14 +46,60 @@ function formatVolume(volume: number): string {
 }
 
 /**
- * Modal component displaying muscle details for a body region.
- * Rendered via React portal to escape stacking context.
+ * Convert muscle names to display data with stats
+ */
+function getMuscleData(
+  muscles: ScientificMuscle[],
+  statsMap: Map<string, VolumeStatItem>
+): MuscleData[] {
+  return muscles
+    .map((muscle) => {
+      const muscleStats = statsMap.get(muscle);
+      return {
+        name: muscle,
+        volume: muscleStats?.volume ?? 0,
+        goal: muscleStats?.goal ?? 0,
+        percentage: muscleStats?.percentage ?? 0,
+      };
+    })
+    .filter((m) => m.goal > 0 || m.volume > 0);
+}
+
+/**
+ * Render a single muscle row
+ */
+function MuscleRow({ muscle }: { muscle: MuscleData }): React.ReactElement {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs text-primary-200 truncate">{muscle.name}</span>
+        <span className="text-xs text-primary-400 font-mono flex-shrink-0">
+          {formatVolume(muscle.volume)}/{formatVolume(muscle.goal)}
+        </span>
+      </div>
+      <div className="w-full h-0.5 overflow-hidden rounded-full bg-primary-900">
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${Math.min(muscle.percentage, 100)}%`,
+            backgroundColor: getVolumeColor(muscle.percentage),
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Floating panel displaying muscle details for a body region.
+ * Non-blocking - allows interaction with body diagram while open.
  */
 export function MuscleDetailModal({
   isOpen,
   onClose,
   region,
-  muscles,
+  primaryMuscles,
+  relatedMuscles,
   profileId,
   daysBack = 7,
 }: MuscleDetailModalProps): React.ReactElement | null {
@@ -61,30 +111,16 @@ export function MuscleDetailModal({
     return new Map<string, VolumeStatItem>(stats.map((s) => [s.name, s]));
   }, [stats]);
 
-  // Filter stats to only muscles in the provided array
-  const filteredMuscles = useMemo(() => {
-    return muscles
-      .map((muscle) => {
-        const muscleStats = statsMap.get(muscle);
-        return {
-          name: muscle,
-          volume: muscleStats?.volume ?? 0,
-          goal: muscleStats?.goal ?? 0,
-          percentage: muscleStats?.percentage ?? 0,
-        };
-      })
-      .filter((m) => m.goal > 0 || m.volume > 0); // Only show muscles with data
-  }, [muscles, statsMap]);
+  // Get data for primary and related muscles
+  const primaryData = useMemo(
+    () => getMuscleData(primaryMuscles, statsMap),
+    [primaryMuscles, statsMap]
+  );
 
-  // Lock body scroll when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }
-  }, [isOpen]);
+  const relatedData = useMemo(
+    () => (relatedMuscles ? getMuscleData(relatedMuscles, statsMap) : []),
+    [relatedMuscles, statsMap]
+  );
 
   // Escape key dismiss
   useEffect(() => {
@@ -123,45 +159,32 @@ export function MuscleDetailModal({
     }
   };
 
-  // Backdrop click dismiss
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   // Don't render if modal is closed or no data to show
-  if (!isOpen || region === null || muscles.length === 0) {
+  if (!isOpen || region === null || primaryMuscles.length === 0) {
     return null;
   }
 
+  // Format region name for display (camelCase to Title Case)
+  const formatRegionName = (r: string): string => {
+    return r.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+  };
+
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-      onClick={handleBackdropClick}
-      style={{ animation: 'fadeIn 0.2s ease-out' }}
+      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 w-56 bg-primary-800 rounded-lg shadow-xl border border-primary-700 overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-      `}</style>
-
-      {/* Modal Card - with swipe-down dismiss handlers */}
-      <div
-        className="relative max-w-lg w-full bg-primary-800 rounded-lg overflow-hidden"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* X button - top-right corner with 44x44 touch target */}
+      {/* Header with region name and X button */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-primary-700">
+        <span className="text-xs font-medium text-primary-300">{formatRegionName(region)}</span>
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary-400 hover:text-primary-200 transition-colors"
+          className="min-w-[32px] min-h-[32px] flex items-center justify-center text-primary-400 hover:text-primary-200 transition-colors -mr-1"
           aria-label="Close"
         >
           <svg
-            className="w-5 h-5"
+            className="w-4 h-4"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -170,32 +193,24 @@ export function MuscleDetailModal({
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+      </div>
 
-        {/* Muscle List - compact spacing (space-y-2), with padding for X button */}
-        <div className="p-4 pt-12 space-y-2 max-h-[70vh] overflow-y-auto">
-          {filteredMuscles.map((muscle) => (
-            <div key={muscle.name} className="space-y-1">
-              {/* Line 1: Muscle name (left) + volume/goal ratio (right) */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-primary-200">{muscle.name}</span>
-                <span className="text-xs text-primary-400 font-mono">
-                  {formatVolume(muscle.volume)}/{formatVolume(muscle.goal)}
-                </span>
-              </div>
+      {/* Muscle List - compact spacing */}
+      <div className="p-3 space-y-2 max-h-48 overflow-y-auto">
+        {/* Primary muscles */}
+        {primaryData.map((muscle) => (
+          <MuscleRow key={muscle.name} muscle={muscle} />
+        ))}
 
-              {/* Line 2: Progress bar - 4px tall (h-1), full width */}
-              <div className="w-full h-1 overflow-hidden rounded-full bg-primary-900">
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.min(muscle.percentage, 100)}%`,
-                    backgroundColor: getVolumeColor(muscle.percentage),
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Separator and related muscles */}
+        {relatedData.length > 0 && (
+          <>
+            <div className="border-t border-primary-700 my-2" />
+            {relatedData.map((muscle) => (
+              <MuscleRow key={muscle.name} muscle={muscle} />
+            ))}
+          </>
+        )}
       </div>
     </div>,
     document.body

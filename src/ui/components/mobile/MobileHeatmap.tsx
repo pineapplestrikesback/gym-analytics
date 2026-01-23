@@ -8,7 +8,7 @@
  * and session-persisted view state (TOGGLE-01, TOGGLE-03).
  */
 
-import { useMemo, useId, useState, useEffect, useCallback } from 'react';
+import { useMemo, useId, useState, useCallback } from 'react';
 import Model from 'react-body-highlighter';
 import type { IExerciseData, Muscle } from 'react-body-highlighter';
 import { useScientificMuscleVolume } from '@db/hooks';
@@ -23,64 +23,72 @@ interface MobileHeatmapProps {
 }
 
 /**
- * Body regions for anatomical grouping
+ * Body regions for anatomical grouping.
+ * - Back split into: traps, lats, lowerBack (erectors)
+ * - Hip flexors/adductors combined into hipFlexors region
  */
 type BodyRegion =
   | 'chest'
   | 'shoulders'
-  | 'upperBack'
+  | 'traps'
+  | 'lats'
   | 'lowerBack'
   | 'biceps'
   | 'triceps'
   | 'forearms'
   | 'abs'
   | 'obliques'
+  | 'hipFlexors'
   | 'quads'
   | 'hamstrings'
   | 'glutes'
-  | 'calves'
-  | 'adductors';
+  | 'calves';
 
 export type { BodyRegion };
 
 /**
- * Mapping from body regions to scientific muscles
+ * Mapping from body regions to scientific muscles.
+ * - primary: muscles that affect this region's color and are shown first in modal
+ * - related: muscles shown below a separator in modal (don't affect color)
  */
-const REGION_TO_MUSCLES: Record<BodyRegion, ScientificMuscle[]> = {
-  chest: ['Pectoralis Major (Sternal)', 'Pectoralis Major (Clavicular)'],
-  shoulders: ['Anterior Deltoid', 'Lateral Deltoid', 'Posterior Deltoid'],
-  upperBack: ['Latissimus Dorsi', 'Middle Trapezius', 'Upper Trapezius'],
-  lowerBack: ['Lower Trapezius', 'Erector Spinae'],
-  biceps: ['Biceps Brachii'],
-  triceps: ['Triceps (Lateral/Medial)', 'Triceps (Long Head)'],
-  forearms: ['Forearm Flexors', 'Forearm Extensors'],
-  abs: ['Rectus Abdominis', 'Hip Flexors'],
-  obliques: ['Obliques'],
-  quads: ['Quadriceps (Vasti)', 'Quadriceps (RF)'],
-  hamstrings: ['Hamstrings'],
-  glutes: ['Gluteus Maximus', 'Gluteus Medius'],
-  calves: ['Gastrocnemius', 'Soleus'],
-  adductors: ['Adductors'],
+const REGION_TO_MUSCLES: Record<BodyRegion, { primary: ScientificMuscle[]; related?: ScientificMuscle[] }> = {
+  chest: { primary: ['Pectoralis Major (Sternal)', 'Pectoralis Major (Clavicular)'] },
+  shoulders: { primary: ['Anterior Deltoid', 'Lateral Deltoid', 'Posterior Deltoid'] },
+  traps: { primary: ['Upper Trapezius', 'Middle Trapezius', 'Lower Trapezius'] },
+  lats: { primary: ['Latissimus Dorsi'] },
+  lowerBack: { primary: ['Erector Spinae'] },
+  biceps: { primary: ['Biceps Brachii'] },
+  triceps: { primary: ['Triceps (Lateral/Medial)', 'Triceps (Long Head)'] },
+  forearms: { primary: ['Forearm Flexors', 'Forearm Extensors'] },
+  abs: { primary: ['Rectus Abdominis'], related: ['Erector Spinae'] },
+  obliques: { primary: ['Obliques'], related: ['Latissimus Dorsi'] },
+  hipFlexors: { primary: ['Hip Flexors', 'Adductors'], related: ['Gluteus Maximus', 'Gluteus Medius'] },
+  quads: { primary: ['Quadriceps (Vasti)', 'Quadriceps (RF)'], related: ['Hamstrings'] },
+  hamstrings: { primary: ['Hamstrings'] },
+  glutes: { primary: ['Gluteus Maximus', 'Gluteus Medius'] },
+  calves: { primary: ['Gastrocnemius', 'Soleus'] },
 };
 
 /**
- * Map body regions to react-body-highlighter muscle slugs
+ * Map body regions to react-body-highlighter muscle slugs.
+ * Note: Library only has trapezius in back view, not front.
  */
 const REGION_TO_LIBRARY_MUSCLES: Record<BodyRegion, { front: string[]; back: string[] }> = {
   chest: { front: ['chest'], back: [] },
   shoulders: { front: ['front-deltoids'], back: ['back-deltoids'] },
-  upperBack: { front: [], back: ['trapezius', 'upper-back'] },
+  traps: { front: ['neck'], back: ['trapezius'] }, // neck region shows upper traps from front
+  lats: { front: [], back: ['upper-back'] },
   lowerBack: { front: [], back: ['lower-back'] },
   biceps: { front: ['biceps'], back: [] },
-  triceps: { front: [], back: ['triceps'] },
+  triceps: { front: ['triceps'], back: ['triceps'] },
   forearms: { front: ['forearm'], back: ['forearm'] },
   abs: { front: ['abs'], back: [] },
   obliques: { front: ['obliques'], back: [] },
+  hipFlexors: { front: ['adductor', 'abductors'], back: [] }, // Hip flexor area = adductor region in library
   quads: { front: ['quadriceps'], back: [] },
   hamstrings: { front: [], back: ['hamstring'] },
   glutes: { front: [], back: ['gluteal'] },
-  calves: { front: [], back: ['calves'] },
-  adductors: { front: ['adductor'], back: [] },
+  calves: { front: ['calves'], back: ['calves'] },
 };
 
 /**
@@ -142,13 +150,13 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
     return new Map(muscleStats.map((s: MuscleStats) => [s.muscle, s]));
   }, [muscleStats]);
 
-  // Calculate regional stats for body highlighting
+  // Calculate regional stats for body highlighting (only primary muscles affect color)
   const regionStats = useMemo(() => {
     const regions = new Map<BodyRegion, { percentage: number }>();
 
-    for (const [region, muscles] of Object.entries(REGION_TO_MUSCLES)) {
-      const muscleData = muscles
-        .map((m) => statsMap.get(m as ScientificMuscle))
+    for (const [region, { primary }] of Object.entries(REGION_TO_MUSCLES)) {
+      const muscleData = primary
+        .map((m) => statsMap.get(m))
         .filter((s): s is MuscleStats => s !== undefined);
 
       const totalVolume = muscleData.reduce((sum, s) => sum + s.volume, 0);
@@ -283,7 +291,8 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
         isOpen={selectedRegion !== null}
         onClose={() => setSelectedRegion(null)}
         region={selectedRegion}
-        muscles={selectedRegion ? REGION_TO_MUSCLES[selectedRegion] : []}
+        primaryMuscles={selectedRegion ? REGION_TO_MUSCLES[selectedRegion].primary : []}
+        relatedMuscles={selectedRegion ? REGION_TO_MUSCLES[selectedRegion].related : undefined}
         profileId={profileId}
         daysBack={daysBack}
       />
@@ -347,36 +356,26 @@ function MobileBodyHighlighter({
     return map;
   }, []);
 
-  // Handle muscle clicks - find region and toggle selection
+  // Handle muscle clicks from library's onClick callback
+  // IMuscleStats: { muscle: Muscle, data: { exercises: string[], frequency: number } }
+  // data.exercises contains the 'name' values we passed in IExerciseData (which are region names)
   const handleMuscleClick = useCallback(
-    (event: MouseEvent) => {
-      const target = event.target as SVGElement;
-      if (target.tagName !== 'polygon') return;
+    (stats: { muscle: string; data: { exercises: string[]; frequency: number } }) => {
+      // Get region from our data (we set name = region when creating exerciseData)
+      const region = stats.data?.exercises?.[0] as BodyRegion;
+      if (!region) {
+        // Fallback: try to map the library muscle slug to a region
+        const mappedRegion = muscleToRegion.get(stats.muscle);
+        if (mappedRegion) {
+          onRegionClick(selectedRegion === mappedRegion ? null : mappedRegion);
+        }
+        return;
+      }
 
-      // Get muscle ID from polygon's data attribute or class
-      const muscleId = target.getAttribute('id') || target.classList[0];
-      if (!muscleId) return;
-
-      // Map muscle to region
-      const region = muscleToRegion.get(muscleId);
-      if (!region) return;
-
-      // Toggle selection
       onRegionClick(selectedRegion === region ? null : region);
     },
     [muscleToRegion, onRegionClick, selectedRegion]
   );
-
-  // Attach click listener to SVG polygons
-  useEffect((): (() => void) | undefined => {
-    const container = document.querySelector(`[data-mobile-heatmap="${scopeId}"]`);
-    if (!container) return;
-
-    container.addEventListener('click', handleMuscleClick as EventListener);
-    return (): void => {
-      container.removeEventListener('click', handleMuscleClick as EventListener);
-    };
-  }, [scopeId, handleMuscleClick]);
 
   return (
     <>
@@ -386,6 +385,7 @@ function MobileBodyHighlighter({
           data={exerciseData}
           highlightedColors={highlightedColors}
           bodyColor={getNoTargetColor()}
+          onClick={handleMuscleClick}
           style={{
             width: '100%',
             maxWidth: '18rem',
