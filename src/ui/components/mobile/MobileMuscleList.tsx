@@ -2,20 +2,23 @@
  * Mobile Muscle List Component
  *
  * Collapsible muscle group list for mobile viewing.
- * Displays 26 muscles organized into 6 anatomical groups (Forearms merged into Arms).
- * Uses UI_MUSCLE_GROUPS from @core/taxonomy for group definitions.
+ * Displays 26 muscles organized into custom user groups.
+ * Reads group configuration from profile via useEffectiveMuscleGroupConfig.
  *
  * Pattern: useState<Set<string>> for expanded state (from WeeklyGoalEditor)
  * Touch: :active pseudo-class for feedback (MOBILE-02)
+ *
+ * Group behavior:
+ * - Ungrouped muscles render at top as flat list (no accordion)
+ * - Custom groups render in user-defined order with accordion
+ * - Hidden muscles excluded entirely from display
  */
 
-import { useState, useMemo } from 'react';
-import { UI_MUSCLE_GROUPS } from '@core/taxonomy';
+import { useState, useMemo, useEffect } from 'react';
 import { useScientificMuscleVolume, type VolumeStatItem } from '@db/hooks/useVolumeStats';
+import { useEffectiveMuscleGroupConfig } from '@db/hooks/useMuscleGroups';
 import { getVolumeColor } from '@core/color-scale';
-// TODO: Re-enable modal when we have more detailed data to show
-// import { MuscleDetailModal } from './MuscleDetailModal';
-// import type { ScientificMuscle } from '@core/taxonomy';
+import type { ScientificMuscle } from '@core/taxonomy';
 
 interface MobileMuscleListProps {
   profileId: string | null;
@@ -39,28 +42,38 @@ export function MobileMuscleList({
   daysBack = 7,
 }: MobileMuscleListProps): React.ReactElement {
   // Fetch volume data for all muscles
-  const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+  const { stats, isLoading: volumeLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+
+  // Fetch custom group configuration
+  const { config, isLoading: configLoading } = useEffectiveMuscleGroupConfig(profileId);
+
+  // Combined loading state
+  const isLoading = volumeLoading || configLoading;
 
   // Create stats map for quick lookup by muscle name
   const statsMap = useMemo(() => {
     return new Map<string, VolumeStatItem>(stats.map((s) => [s.name, s]));
   }, [stats]);
 
-  // TODO: Re-enable modal when we have more detailed data to show
-  // const [selectedMuscle, setSelectedMuscle] = useState<ScientificMuscle | null>(null);
+  // Track expanded groups by group ID
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
-  // Start with first group expanded (mobile-optimized: less initial scrolling)
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    const firstGroup = UI_MUSCLE_GROUPS[0];
-    return firstGroup ? new Set([firstGroup.name]) : new Set();
-  });
-
-  const toggleGroup = (groupName: string): void => {
-    const newExpanded = new Set(expandedGroups);
-    if (newExpanded.has(groupName)) {
-      newExpanded.delete(groupName);
+  // Reset expanded state when config changes (expand first group by default)
+  useEffect(() => {
+    const firstGroup = config.groups[0];
+    if (firstGroup) {
+      setExpandedGroups(new Set([firstGroup.id]));
     } else {
-      newExpanded.add(groupName);
+      setExpandedGroups(new Set());
+    }
+  }, [config.groups]);
+
+  const toggleGroup = (groupId: string): void => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupId)) {
+      newExpanded.delete(groupId);
+    } else {
+      newExpanded.add(groupId);
     }
     setExpandedGroups(newExpanded);
   };
@@ -84,19 +97,60 @@ export function MobileMuscleList({
     );
   }
 
+  // Helper to render a single muscle row
+  const renderMuscleRow = (muscle: ScientificMuscle): React.ReactElement => {
+    const muscleStats = statsMap.get(muscle);
+    const volume = muscleStats?.volume ?? 0;
+    const goal = muscleStats?.goal ?? 0;
+    const percentage = muscleStats?.percentage ?? 0;
+
+    return (
+      <div key={muscle} className="rounded-md -mx-1 px-1 py-1">
+        <div className="space-y-1">
+          {/* Line 1: Muscle name (left) + volume/goal ratio (right) */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-primary-200">{muscle}</span>
+            <span className="text-xs text-primary-400 font-mono">
+              {formatVolume(volume)}/{formatVolume(goal)}
+            </span>
+          </div>
+
+          {/* Line 2: Progress bar - 4px tall (h-1), full width */}
+          <div className="w-full h-1 overflow-hidden rounded-full bg-primary-800">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${Math.min(percentage, 100)}%`,
+                backgroundColor: getVolumeColor(percentage),
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-2">
-      {UI_MUSCLE_GROUPS.map((group) => {
-        const isExpanded = expandedGroups.has(group.name);
+      {/* Ungrouped muscles - flat list at top (no accordion) */}
+      {config.ungrouped.length > 0 && (
+        <div className="rounded-lg overflow-hidden border border-primary-700 bg-primary-900 p-3 space-y-3">
+          {config.ungrouped.map((muscle) => renderMuscleRow(muscle))}
+        </div>
+      )}
+
+      {/* Custom groups - in user-defined order */}
+      {config.groups.map((group) => {
+        const isExpanded = expandedGroups.has(group.id);
 
         return (
           <div
-            key={group.name}
+            key={group.id}
             className="rounded-lg overflow-hidden border border-primary-700"
           >
             {/* Group header - tap to toggle */}
             <button
-              onClick={() => toggleGroup(group.name)}
+              onClick={() => toggleGroup(group.id)}
               className="w-full flex items-center gap-3 p-3 bg-primary-800 transition-colors active:bg-primary-700"
             >
               {/* Chevron icon - rotates when expanded */}
@@ -123,56 +177,14 @@ export function MobileMuscleList({
             {/* Group content - conditionally rendered */}
             {isExpanded && (
               <div className="bg-primary-900 p-3 space-y-3">
-                {group.muscles.map((muscle) => {
-                  const muscleStats = statsMap.get(muscle);
-                  const volume = muscleStats?.volume ?? 0;
-                  const goal = muscleStats?.goal ?? 0;
-                  const percentage = muscleStats?.percentage ?? 0;
-
-                  return (
-                    <div
-                      key={muscle}
-                      className="rounded-md -mx-1 px-1 py-1"
-                    >
-                      {/* TODO: Re-enable tap-to-modal when we have more detailed data */}
-                      <div className="space-y-1">
-                        {/* Line 1: Muscle name (left) + volume/goal ratio (right) */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-primary-200">
-                            {muscle}
-                          </span>
-                          <span className="text-xs text-primary-400 font-mono">
-                            {formatVolume(volume)}/{formatVolume(goal)}
-                          </span>
-                        </div>
-
-                        {/* Line 2: Progress bar - 4px tall (h-1), full width */}
-                        <div className="w-full h-1 overflow-hidden rounded-full bg-primary-800">
-                          <div
-                            className="h-full rounded-full transition-all duration-300"
-                            style={{
-                              width: `${Math.min(percentage, 100)}%`,
-                              backgroundColor: getVolumeColor(percentage),
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {group.muscles.map((muscle) => renderMuscleRow(muscle))}
               </div>
             )}
           </div>
         );
       })}
+
+      {/* Hidden muscles (config.hidden) are intentionally NOT rendered */}
     </div>
   );
-  // TODO: Re-enable modal when we have more detailed data to show
-  // <MuscleDetailModal
-  //   isOpen={selectedMuscle !== null}
-  //   onClose={() => setSelectedMuscle(null)}
-  //   muscle={selectedMuscle}
-  //   profileId={profileId}
-  //   daysBack={daysBack}
-  // />
 }
