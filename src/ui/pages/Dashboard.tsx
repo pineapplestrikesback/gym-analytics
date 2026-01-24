@@ -77,6 +77,9 @@ export function Dashboard(): React.ReactElement {
         <h2 className="text-2xl font-bold text-white">Workout Overview</h2>
       </div>
 
+      {/* Total Weekly Volume */}
+      <TotalVolumeCard />
+
       {/* Weekly Activity Chart */}
       <WeeklyActivityChart />
 
@@ -95,8 +98,6 @@ export function Dashboard(): React.ReactElement {
         )}
       </div>
 
-      {/* Total Volume */}
-      <TotalVolumeCard />
     </div>
   );
 }
