@@ -5,40 +5,43 @@
 See: .planning/PROJECT.md (updated 2026-01-18)
 
 **Core value:** The body itself must carry the primary signal - users see training distribution at a glance without reading numbers.
-**Current focus:** Phase 6 - Carousel Navigation (Complete)
+**Current focus:** Phase 9 - Custom Grouping (in progress)
 
 ## Current Position
 
-Phase: 6 of 9 (Carousel Navigation)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-22 - Completed 06-02-PLAN.md
+Phase: 9 of 9 (Custom Grouping)
+Plan: 2 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-23 - Completed 09-02-PLAN.md (Settings UI)
 
-Progress: [==========] 83%
+Progress: [===============] 94%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 10
-- Average duration: 2.7 min
-- Total execution time: 30 min
+- Total plans completed: 16
+- Average duration: 6.25 min (including user testing iterations)
+- Total execution time: 100 min
 
 **By Phase:**
 
-| Phase                   | Plans | Total | Avg/Plan |
-| ----------------------- | ----- | ----- | -------- |
-| 01-component-foundation | 1     | 4 min | 4 min    |
-| 02-visual-system        | 2     | 7 min | 3.5 min  |
-| 03-heatmap-core         | 2     | 7 min | 3.5 min  |
-| 04-front-back-toggle    | 1     | 2 min | 2 min    |
-| 05-muscle-list          | 2     | 3 min | 1.5 min  |
-| 06-carousel-navigation  | 2     | 7 min | 3.5 min  |
+| Phase                   | Plans | Total  | Avg/Plan |
+| ----------------------- | ----- | ------ | -------- |
+| 01-component-foundation | 1     | 4 min  | 4 min    |
+| 02-visual-system        | 2     | 7 min  | 3.5 min  |
+| 03-heatmap-core         | 2     | 7 min  | 3.5 min  |
+| 04-front-back-toggle    | 1     | 2 min  | 2 min    |
+| 05-muscle-list          | 2     | 3 min  | 1.5 min  |
+| 06-carousel-navigation  | 2     | 7 min  | 3.5 min  |
+| 07-detail-pop-up        | 2     | 47 min | 23.5 min |
+| 08-tap-interactions     | 2     | 10 min | 5 min    |
+| 09-custom-grouping      | 2     | 11 min | 5.5 min  |
 
 **Recent Trend:**
 
-- Last 5 plans: 2 min, 1 min, 2 min, 2 min, 5 min
-- Trend: Stable (consistently fast on focused plans)
+- Plan 09-02 completed in 8 min (Settings UI with dnd-kit)
+- Trend: UI tasks with new libraries take moderate time
 
 _Updated after each plan completion_
 
@@ -76,6 +79,15 @@ Recent decisions affecting current work:
 - Two-line muscle list layout (name+ratio, then progress bar) for better readability
 - Bilateral muscle highlighting: tapping one side highlights both left and right
 - Persistent muscle highlights: selection stays until user changes it
+- Combined modal tasks into single commit (dismiss handlers integral to modal functionality)
+- X button in top-right with pt-12 padding for content clearance
+- Simple touchStart/touchEnd for swipe (no passive: false to preserve list scrolling)
+- 4 default muscle groups (Push, Pull, Legs, Core) - arms distributed into Push/Pull
+- MAX_GROUPS = 8 enforced at validation level
+- Optional customMuscleGroups field - no schema migration needed
+- Nested DndContext pattern for independent group and muscle sorting
+- crypto.randomUUID() for new group IDs (guaranteed uniqueness for dnd-kit)
+- Ungrouped section shows muscles at top priority, Hidden excludes from display
 
 ### Patterns Established
 
@@ -108,6 +120,27 @@ Recent decisions affecting current work:
 - **LIST-MOBILE-03:** Clean group headers showing only name + chevron
 - **HEAT-BILATERAL-01:** Tapping one side highlights both left and right muscles
 - **HEAT-PERSIST-01:** Selected muscle highlight persists across view flips and until user changes selection
+- **MODAL-01:** Portal rendering via createPortal to document.body for z-index isolation
+- **MODAL-02:** Body scroll lock via document.body.style.overflow = 'hidden'
+- **MODAL-03:** Touch guard pattern with optional chaining for touch events
+- **MODAL-04:** 44x44px minimum touch target for close button accessibility
+- **MODAL-05:** Floating panel positioned at bottom-20 for non-blocking UX
+- **MODAL-06:** Primary/related muscle separation with horizontal divider
+- **REGION-01:** Primary muscles affect heatmap color, related muscles shown in modal only
+- **REGION-02:** Combined hipFlexors region for hip flexors + adductors
+- **REGION-03:** Traps mapped to 'neck' for front view visibility
+- **CLICK-01:** Use library onClick prop instead of DOM event listeners (polygons have no IDs)
+- **LIST-TAP-01:** Button wrapper with active:bg-* for tappable list rows
+- **MODAL-07:** Dual-mode modal via optional props (region vs single muscle)
+- **TAP-ANIM-01:** State-driven animation with priority over selection state
+- **TAP-CLEAN-01:** -webkit-tap-highlight-color: transparent on html element
+- **GROUP-CONFIG-01:** useEffectiveMuscleGroupConfig returns isUsingDefault flag for UI
+- **GROUP-CONFIG-02:** validateMuscleGroupConfig checks all 26 muscles accounted for
+- **GROUP-CONFIG-03:** moveMuscle removes from all locations before adding to target
+- **DND-SETTINGS-01:** Parent DndContext for group reorder, child DndContext per group for muscle reorder
+- **DND-SETTINGS-02:** useSortable with verticalListSortingStrategy for accordion items
+- **MODAL-SETTINGS-01:** Render null when closed for zero DOM overhead
+- **CONFIRM-01:** ConfirmationDialog for destructive actions (delete group, reset to defaults)
 
 ### Pending Todos
 
@@ -115,10 +148,10 @@ None.
 
 ### Blockers/Concerns
 
-None - Phase 06 complete with improved mobile UX.
+None - Plan 09-02 complete.
 
 ## Session Continuity
 
-Last session: 2026-01-22T23:11:00Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-01-23
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None

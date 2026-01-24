@@ -6,3 +6,6 @@ scripts/pr-review-agent/node_modules
 scripts/pr-review-agent/dist
 scripts/pr-review-agent/data
 scripts/pr-review-agent/.env
+
+# Git worktrees
+.worktrees/

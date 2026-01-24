@@ -7,6 +7,24 @@ import Dexie, { type Table } from 'dexie';
 import type { ScientificMuscle, FunctionalGroup } from '@core/taxonomy';
 
 /**
+ * User-defined muscle group for organizing the muscle list
+ */
+export interface CustomMuscleGroup {
+  id: string;                       // Unique identifier (for drag-drop keys)
+  name: string;                     // Display name (user-editable)
+  muscles: ScientificMuscle[];      // Ordered list of muscles in this group
+}
+
+/**
+ * Complete muscle grouping configuration for a profile
+ */
+export interface MuscleGroupConfig {
+  groups: CustomMuscleGroup[];      // Ordered custom groups (max 8)
+  ungrouped: ScientificMuscle[];    // Muscles shown at top (promoted)
+  hidden: ScientificMuscle[];       // Muscles excluded from list/heatmap
+}
+
+/**
  * Default goal for each muscle (sets per week)
  */
 export const DEFAULT_MUSCLE_GOAL = 20;
@@ -56,6 +74,7 @@ export interface Profile {
   goals: Partial<Record<ScientificMuscle, number>>;
   totalGoal: number;
   muscleGroupCustomization: Partial<Record<ScientificMuscle, FunctionalGroup>>;
+  customMuscleGroups?: MuscleGroupConfig;  // Optional, defaults to preset
   createdAt: Date;
 }
 

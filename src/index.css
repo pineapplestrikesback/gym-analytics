@@ -51,6 +51,12 @@
   --color-accent-blue: #22d3ee;
 }
 
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
 body {
   font-family: 'Outfit', sans-serif;
 }

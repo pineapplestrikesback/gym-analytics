@@ -10,8 +10,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { MobileHeatmap } from './MobileHeatmap';
-import { MobileMuscleList } from './MobileMuscleList';
+import { MobileHeatmap } from '@ui/components/mobile/MobileHeatmap';
+import { MobileMuscleList } from '@ui/components/mobile/MobileMuscleList';
 
 interface MobileCarouselProps {
   profileId: string | null;

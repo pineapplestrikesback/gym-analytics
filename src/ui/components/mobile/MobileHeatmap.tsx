@@ -8,13 +8,15 @@
  * and session-persisted view state (TOGGLE-01, TOGGLE-03).
  */
 
-import { useMemo, useId, useState, useEffect, useCallback } from 'react';
+import { useMemo, useId, useState, useCallback, useEffect } from 'react';
 import Model from 'react-body-highlighter';
 import type { IExerciseData, Muscle } from 'react-body-highlighter';
 import { useScientificMuscleVolume } from '@db/hooks';
+import { useEffectiveMuscleGroupConfig } from '@db/hooks/useMuscleGroups';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { getVolumeColor, getNoTargetColor } from '@core/color-scale';
 import { useSessionState } from '@ui/hooks/use-session-state';
+import { MuscleDetailModal } from './MuscleDetailModal';
 
 interface MobileHeatmapProps {
   profileId: string | null;
@@ -22,62 +24,72 @@ interface MobileHeatmapProps {
 }
 
 /**
- * Body regions for anatomical grouping
+ * Body regions for anatomical grouping.
+ * - Back split into: traps, lats, lowerBack (erectors)
+ * - Hip flexors/adductors combined into hipFlexors region
  */
 type BodyRegion =
   | 'chest'
   | 'shoulders'
-  | 'upperBack'
+  | 'traps'
+  | 'lats'
   | 'lowerBack'
   | 'biceps'
   | 'triceps'
   | 'forearms'
   | 'abs'
   | 'obliques'
+  | 'hipFlexors'
   | 'quads'
   | 'hamstrings'
   | 'glutes'
-  | 'calves'
-  | 'adductors';
+  | 'calves';
+
+export type { BodyRegion };
 
 /**
- * Mapping from body regions to scientific muscles
+ * Mapping from body regions to scientific muscles.
+ * - primary: muscles that affect this region's color and are shown first in modal
+ * - related: muscles shown below a separator in modal (don't affect color)
  */
-const REGION_TO_MUSCLES: Record<BodyRegion, ScientificMuscle[]> = {
-  chest: ['Pectoralis Major (Sternal)', 'Pectoralis Major (Clavicular)'],
-  shoulders: ['Anterior Deltoid', 'Lateral Deltoid', 'Posterior Deltoid'],
-  upperBack: ['Latissimus Dorsi', 'Middle Trapezius', 'Upper Trapezius'],
-  lowerBack: ['Lower Trapezius', 'Erector Spinae'],
-  biceps: ['Biceps Brachii'],
-  triceps: ['Triceps (Lateral/Medial)', 'Triceps (Long Head)'],
-  forearms: ['Forearm Flexors', 'Forearm Extensors'],
-  abs: ['Rectus Abdominis', 'Hip Flexors'],
-  obliques: ['Obliques'],
-  quads: ['Quadriceps (Vasti)', 'Quadriceps (RF)'],
-  hamstrings: ['Hamstrings'],
-  glutes: ['Gluteus Maximus', 'Gluteus Medius'],
-  calves: ['Gastrocnemius', 'Soleus'],
-  adductors: ['Adductors'],
+const REGION_TO_MUSCLES: Record<BodyRegion, { primary: ScientificMuscle[]; related?: ScientificMuscle[] }> = {
+  chest: { primary: ['Pectoralis Major (Sternal)', 'Pectoralis Major (Clavicular)'] },
+  shoulders: { primary: ['Anterior Deltoid', 'Lateral Deltoid', 'Posterior Deltoid'] },
+  traps: { primary: ['Upper Trapezius', 'Middle Trapezius', 'Lower Trapezius'] },
+  lats: { primary: ['Latissimus Dorsi'] },
+  lowerBack: { primary: ['Erector Spinae'] },
+  biceps: { primary: ['Biceps Brachii'] },
+  triceps: { primary: ['Triceps (Lateral/Medial)', 'Triceps (Long Head)'] },
+  forearms: { primary: ['Forearm Flexors', 'Forearm Extensors'] },
+  abs: { primary: ['Rectus Abdominis'], related: ['Erector Spinae'] },
+  obliques: { primary: ['Obliques'], related: ['Latissimus Dorsi'] },
+  hipFlexors: { primary: ['Hip Flexors', 'Adductors'], related: ['Gluteus Maximus', 'Gluteus Medius'] },
+  quads: { primary: ['Quadriceps (Vasti)', 'Quadriceps (RF)'], related: ['Hamstrings'] },
+  hamstrings: { primary: ['Hamstrings'] },
+  glutes: { primary: ['Gluteus Maximus', 'Gluteus Medius'] },
+  calves: { primary: ['Gastrocnemius', 'Soleus'] },
 };
 
 /**
- * Map body regions to react-body-highlighter muscle slugs
+ * Map body regions to react-body-highlighter muscle slugs.
+ * Note: Library only has trapezius in back view, not front.
  */
 const REGION_TO_LIBRARY_MUSCLES: Record<BodyRegion, { front: string[]; back: string[] }> = {
   chest: { front: ['chest'], back: [] },
   shoulders: { front: ['front-deltoids'], back: ['back-deltoids'] },
-  upperBack: { front: [], back: ['trapezius', 'upper-back'] },
+  traps: { front: ['neck'], back: ['trapezius'] }, // neck region shows upper traps from front
+  lats: { front: [], back: ['upper-back'] },
   lowerBack: { front: [], back: ['lower-back'] },
   biceps: { front: ['biceps'], back: [] },
-  triceps: { front: [], back: ['triceps'] },
+  triceps: { front: ['triceps'], back: ['triceps'] },
   forearms: { front: ['forearm'], back: ['forearm'] },
   abs: { front: ['abs'], back: [] },
   obliques: { front: ['obliques'], back: [] },
+  hipFlexors: { front: ['adductor', 'abductors'], back: [] }, // Hip flexor area = adductor region in library
   quads: { front: ['quadriceps'], back: [] },
   hamstrings: { front: [], back: ['hamstring'] },
   glutes: { front: [], back: ['gluteal'] },
-  calves: { front: [], back: ['calves'] },
-  adductors: { front: ['adductor'], back: [] },
+  calves: { front: ['calves'], back: ['calves'] },
 };
 
 /**
@@ -92,6 +104,21 @@ function getFrequencyLevel(percentage: number): number {
   return 5;
 }
 
+/**
+ * Color array for muscle highlighting based on volume percentage.
+ * Uses centralized color scale from @core/color-scale.
+ */
+const HIGHLIGHTED_COLORS = [
+  getVolumeColor(12.5), // frequency 1: 0-25%
+  getVolumeColor(37.5), // frequency 2: 25-50%
+  getVolumeColor(62.5), // frequency 3: 50-75%
+  getVolumeColor(87.5), // frequency 4: 75-100%
+  getVolumeColor(100), // frequency 5: 100%+
+  'rgb(245, 158, 11)', // frequency 6: selected state (amber highlight)
+  'rgb(255, 255, 255)', // frequency 7: tap animation (white flash)
+  'rgb(55, 65, 81)', // frequency 8: hidden muscle (gray - primary-700 equivalent)
+];
+
 interface MuscleStats {
   muscle: ScientificMuscle;
   volume: number;
@@ -105,11 +132,27 @@ interface MuscleStats {
  */
 export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+  const { config } = useEffectiveMuscleGroupConfig(profileId);
   const [view, setView] = useSessionState<'front' | 'back'>(
     'scientificmuscle_heatmap_view',
     'front'
   );
   const [selectedRegion, setSelectedRegion] = useState<BodyRegion | null>(null);
+  const [tappedRegion, setTappedRegion] = useState<BodyRegion | null>(null);
+
+  // Auto-clear tappedRegion after animation duration (prevents memory leak from setTimeout)
+  useEffect(() => {
+    if (tappedRegion !== null) {
+      const timer = setTimeout(() => setTappedRegion(null), 150);
+      return () => clearTimeout(timer);
+    }
+  }, [tappedRegion]);
+
+  // Create set of hidden muscles for quick lookup
+  const hiddenMuscles = useMemo(
+    () => new Set<ScientificMuscle>(config.hidden),
+    [config.hidden]
+  );
 
   // Map stats to muscle-level data
   const muscleStats = useMemo((): MuscleStats[] => {
@@ -126,24 +169,35 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
     return new Map(muscleStats.map((s: MuscleStats) => [s.muscle, s]));
   }, [muscleStats]);
 
-  // Calculate regional stats for body highlighting
+  // Calculate regional stats for body highlighting (only primary muscles affect color)
+  // Regions with all primary muscles hidden are marked with isHidden: true
   const regionStats = useMemo(() => {
-    const regions = new Map<BodyRegion, { percentage: number }>();
+    const regions = new Map<BodyRegion, { percentage: number; isHidden: boolean }>();
 
-    for (const [region, muscles] of Object.entries(REGION_TO_MUSCLES)) {
-      const muscleData = muscles
-        .map((m) => statsMap.get(m as ScientificMuscle))
-        .filter((s): s is MuscleStats => s !== undefined);
+    for (const [region, { primary }] of Object.entries(REGION_TO_MUSCLES)) {
+      // Check if all primary muscles in this region are hidden
+      const visibleMuscles = primary.filter((m) => !hiddenMuscles.has(m));
+      const isHidden = visibleMuscles.length === 0;
 
-      const totalVolume = muscleData.reduce((sum, s) => sum + s.volume, 0);
-      const totalGoal = muscleData.reduce((sum, s) => sum + s.goal, 0);
-      const percentage = totalGoal > 0 ? (totalVolume / totalGoal) * 100 : 0;
+      if (isHidden) {
+        // All muscles in this region are hidden - use special flag
+        regions.set(region as BodyRegion, { percentage: 0, isHidden: true });
+      } else {
+        // Calculate stats based on visible muscles only
+        const muscleData = visibleMuscles
+          .map((m) => statsMap.get(m))
+          .filter((s): s is MuscleStats => s !== undefined);
 
-      regions.set(region as BodyRegion, { percentage });
+        const totalVolume = muscleData.reduce((sum, s) => sum + s.volume, 0);
+        const totalGoal = muscleData.reduce((sum, s) => sum + s.goal, 0);
+        const percentage = totalGoal > 0 ? (totalVolume / totalGoal) * 100 : 0;
+
+        regions.set(region as BodyRegion, { percentage, isHidden: false });
+      }
     }
 
     return regions;
-  }, [statsMap]);
+  }, [statsMap, hiddenMuscles]);
 
   // Loading state
   if (isLoading) {
@@ -177,8 +231,9 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
     );
   }
 
-  // Toggle view handler
+  // Toggle view handler - clear selection when flipping (auto-close modal)
   const toggleView = (): void => {
+    setSelectedRegion(null);
     setView(view === 'front' ? 'back' : 'front');
   };
 
@@ -213,7 +268,9 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
               type="anterior"
               regionStats={regionStats}
               selectedRegion={selectedRegion}
+              tappedRegion={tappedRegion}
               onRegionClick={setSelectedRegion}
+              onTap={setTappedRegion}
             />
           </div>
 
@@ -230,7 +287,9 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
               type="posterior"
               regionStats={regionStats}
               selectedRegion={selectedRegion}
+              tappedRegion={tappedRegion}
               onRegionClick={setSelectedRegion}
+              onTap={setTappedRegion}
             />
           </div>
         </div>
@@ -260,6 +319,17 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
           <span>{view === 'front' ? 'Back' : 'Front'}</span>
         </span>
       </button>
+
+      {/* Muscle Detail Modal */}
+      <MuscleDetailModal
+        isOpen={selectedRegion !== null}
+        onClose={() => setSelectedRegion(null)}
+        region={selectedRegion}
+        primaryMuscles={selectedRegion ? REGION_TO_MUSCLES[selectedRegion].primary : []}
+        relatedMuscles={selectedRegion ? REGION_TO_MUSCLES[selectedRegion].related : undefined}
+        profileId={profileId}
+        daysBack={daysBack}
+      />
     </div>
   );
 }
@@ -271,12 +341,16 @@ function MobileBodyHighlighter({
   type,
   regionStats,
   selectedRegion,
+  tappedRegion,
   onRegionClick,
+  onTap,
 }: {
   type: 'anterior' | 'posterior';
-  regionStats: Map<BodyRegion, { percentage: number }>;
+  regionStats: Map<BodyRegion, { percentage: number; isHidden: boolean }>;
   selectedRegion: BodyRegion | null;
+  tappedRegion: BodyRegion | null;
   onRegionClick: (region: BodyRegion | null) => void;
+  onTap: (region: BodyRegion | null) => void;
 }): React.ReactElement {
   // Generate unique ID for scoped styles
   const scopeId = useId().replace(/:/g, '');
@@ -290,8 +364,15 @@ function MobileBodyHighlighter({
       const muscles = REGION_TO_LIBRARY_MUSCLES[region][viewKey];
 
       if (muscles.length > 0) {
-        // Use max frequency (6) for selected region to create persistent bilateral highlight
-        const frequency = selectedRegion === region ? 6 : getFrequencyLevel(stats.percentage);
+        // Priority: hidden (8) > tap animation (7) > selected (6) > volume-based color
+        // Note: hidden regions can still be tapped/selected for visual feedback
+        const frequency = stats.isHidden
+          ? 8 // Hidden muscle (gray)
+          : tappedRegion === region
+            ? 7 // Tap animation (highest priority - white flash)
+            : selectedRegion === region
+              ? 6 // Selected state (amber highlight)
+              : getFrequencyLevel(stats.percentage);
 
         muscles.forEach((muscle) => {
           data.push({
@@ -304,19 +385,10 @@ function MobileBodyHighlighter({
     });
 
     return data;
-  }, [type, regionStats, selectedRegion]);
+  }, [type, regionStats, selectedRegion, tappedRegion]);
 
-  // Color array for highlighting - uses centralized color scale
-  const highlightedColors = useMemo(() => {
-    return [
-      getVolumeColor(12.5), // frequency 1: 0-25%
-      getVolumeColor(37.5), // frequency 2: 25-50%
-      getVolumeColor(62.5), // frequency 3: 50-75%
-      getVolumeColor(87.5), // frequency 4: 75-100%
-      getVolumeColor(100), // frequency 5: 100%+
-      'rgb(245, 158, 11)', // frequency 6: selected state (amber highlight)
-    ];
-  }, []);
+  // Use module-level constant for highlight colors
+  const highlightedColors = HIGHLIGHTED_COLORS;
 
   // Map library muscle slugs back to regions
   const muscleToRegion = useMemo(() => {
@@ -329,36 +401,32 @@ function MobileBodyHighlighter({
     return map;
   }, []);
 
-  // Handle muscle clicks - find region and toggle selection
+  // Handle muscle clicks from library's onClick callback
+  // IMuscleStats: { muscle: Muscle, data: { exercises: string[], frequency: number } }
+  // data.exercises contains the 'name' values we passed in IExerciseData (which are region names)
   const handleMuscleClick = useCallback(
-    (event: MouseEvent) => {
-      const target = event.target as SVGElement;
-      if (target.tagName !== 'polygon') return;
+    (stats: { muscle: string; data: { exercises: string[]; frequency: number } }) => {
+      // Get region from our data (we set name = region when creating exerciseData)
+      const region = stats.data?.exercises?.[0] as BodyRegion;
+      if (!region) {
+        // Fallback: try to map the library muscle slug to a region
+        const mappedRegion = muscleToRegion.get(stats.muscle);
+        if (mappedRegion) {
+          // Trigger bilateral tap animation (both views will flash)
+          // Auto-cleared by useEffect after 150ms
+          onTap(mappedRegion);
+          onRegionClick(selectedRegion === mappedRegion ? null : mappedRegion);
+        }
+        return;
+      }
 
-      // Get muscle ID from polygon's data attribute or class
-      const muscleId = target.getAttribute('id') || target.classList[0];
-      if (!muscleId) return;
-
-      // Map muscle to region
-      const region = muscleToRegion.get(muscleId);
-      if (!region) return;
-
-      // Toggle selection
+      // Trigger bilateral tap animation (both views will flash)
+      // Auto-cleared by useEffect after 150ms
+      onTap(region);
       onRegionClick(selectedRegion === region ? null : region);
     },
-    [muscleToRegion, onRegionClick, selectedRegion]
+    [muscleToRegion, onRegionClick, onTap, selectedRegion]
   );
-
-  // Attach click listener to SVG polygons
-  useEffect((): (() => void) | undefined => {
-    const container = document.querySelector(`[data-mobile-heatmap="${scopeId}"]`);
-    if (!container) return;
-
-    container.addEventListener('click', handleMuscleClick as EventListener);
-    return (): void => {
-      container.removeEventListener('click', handleMuscleClick as EventListener);
-    };
-  }, [scopeId, handleMuscleClick]);
 
   return (
     <>
@@ -368,6 +436,7 @@ function MobileBodyHighlighter({
           data={exerciseData}
           highlightedColors={highlightedColors}
           bodyColor={getNoTargetColor()}
+          onClick={handleMuscleClick}
           style={{
             width: '100%',
             maxWidth: '18rem',
@@ -400,6 +469,17 @@ function MobileBodyHighlighter({
             stroke-width: 0.75px;
           }
         }
+
+        ${selectedRegion && REGION_TO_LIBRARY_MUSCLES[selectedRegion][type === 'anterior' ? 'front' : 'back'].length > 0 ? `
+        /* Selected region highlighting - white stroke when modal open */
+        ${REGION_TO_LIBRARY_MUSCLES[selectedRegion][type === 'anterior' ? 'front' : 'back']
+          .map((muscle) => `[data-mobile-heatmap="${scopeId}"] .rbh polygon#${muscle}`)
+          .join(',\n        ')} {
+          stroke: white;
+          stroke-width: 2px;
+          stroke-opacity: 0.8;
+        }
+        ` : ''}
       `}</style>
     </>
   );

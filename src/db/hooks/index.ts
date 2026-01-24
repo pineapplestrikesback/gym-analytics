@@ -9,3 +9,4 @@ export * from './useHevySync';
 export * from './useDailyStats';
 export * from './useDefaultExerciseOverrides';
 export * from './useDefaultNameMappingOverrides';
+export * from './useMuscleGroups';

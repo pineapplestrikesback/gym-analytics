@@ -25,6 +25,9 @@
   },
   "homepage": "https://github.com/pineapplestrikesback/gym-analytics#readme",
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@tanstack/react-query": "^5.90.16",
     "@vercel/analytics": "^1.6.1",
     "autoprefixer": "^10.4.23",

@@ -17,8 +17,8 @@ This roadmap transforms the muscle heatmap from a label-cluttered display into a
 - [x] **Phase 4: Front/Back Toggle** - Rotation-style view switching
 - [x] **Phase 5: Muscle List** - Grouped list with progress bars
 - [x] **Phase 6: Carousel Navigation** - Swipeable two-slide interface
-- [ ] **Phase 7: Detail Pop-up** - Muscle detail overlay component
-- [ ] **Phase 8: Tap Interactions** - Connect taps to pop-up system
+- [x] **Phase 7: Detail Pop-up** - Muscle detail overlay component
+- [x] **Phase 8: Tap Interactions** - Connect taps to pop-up system
 - [ ] **Phase 9: Custom Grouping** - User-configurable muscle groups in Settings
 
 ## Phase Details
@@ -138,7 +138,7 @@ Plans:
 **Goal**: Modal component displays individual muscle details
 **Depends on**: Phase 2
 **Requirements**: DETAIL-01, DETAIL-02, DETAIL-03
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -148,15 +148,15 @@ Plans:
 
 Plans:
 
-- [ ] 07-01: Create modal component with muscle detail layout
-- [ ] 07-02: Implement dismiss behavior and heatmap highlighting
+- [x] 07-01-PLAN.md - Create modal component with muscle list layout and all dismiss behaviors
+- [x] 07-02-PLAN.md - Integrate modal into MobileHeatmap with SVG highlighting and auto-close on flip
 
 ### Phase 8: Tap Interactions
 
 **Goal**: Tapping muscles on heatmap or list opens detail pop-up
 **Depends on**: Phase 3, Phase 5, Phase 7
 **Requirements**: HEAT-04, LIST-05
-**Plans**: TBD
+**Plans**: 2 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -166,16 +166,15 @@ Plans:
 
 Plans:
 
-- [ ] 08-01: Add tap handlers to heatmap regions
-- [ ] 08-02: Add tap handlers to list rows
-- [ ] 08-03: Wire up pop-up state management
+- [x] 08-01-PLAN.md - Add single-muscle modal mode and list row tap handlers
+- [x] 08-02-PLAN.md - Fix bilateral tap animation and suppress default tap highlights
 
 ### Phase 9: Custom Grouping
 
 **Goal**: Users can customize how muscles are grouped in Settings
 **Depends on**: Phase 5
 **Requirements**: GROUP-01, GROUP-02, GROUP-03, GROUP-04, GROUP-05
-**Plans**: TBD
+**Plans**: 3 plans
 
 **Success Criteria** (what must be TRUE):
 
@@ -187,9 +186,9 @@ Plans:
 
 Plans:
 
-- [ ] 09-01: Add database schema for custom groupings
-- [ ] 09-02: Create Settings UI for group management
-- [ ] 09-03: Integrate custom groupings into muscle list display
+- [ ] 09-01-PLAN.md - Schema types, default config, and useMuscleGroups hook
+- [ ] 09-02-PLAN.md - Settings UI with drag-and-drop group editor
+- [ ] 09-03-PLAN.md - Integrate custom groups into MobileMuscleList and MobileHeatmap
 
 ## Progress
 
@@ -204,11 +203,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 4. Front/Back Toggle    | 1/1            | Complete    | 2026-01-19 |
 | 5. Muscle List          | 2/2            | Complete    | 2026-01-22 |
 | 6. Carousel Navigation  | 2/2            | Complete    | 2026-01-23 |
-| 7. Detail Pop-up        | 0/2            | Not started | -          |
-| 8. Tap Interactions     | 0/3            | Not started | -          |
+| 7. Detail Pop-up        | 2/2            | Complete    | 2026-01-23 |
+| 8. Tap Interactions     | 2/2            | Complete    | 2026-01-23 |
 | 9. Custom Grouping      | 0/3            | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-01-18_
-_Last updated: 2026-01-23 (Phase 6 complete)_
+_Last updated: 2026-01-23 (Phase 9 planned)_
