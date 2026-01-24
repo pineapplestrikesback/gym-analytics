@@ -57,6 +57,8 @@
   }
 }
 
+html,
 body {
   font-family: 'Outfit', sans-serif;
+  background-color: var(--color-primary-900);
 }
