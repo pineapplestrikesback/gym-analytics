@@ -13,7 +13,7 @@ export function TotalVolumeCard(): React.ReactElement {
   );
 
   if (isLoading) {
-    return <div className="h-16 animate-pulse rounded-lg bg-zinc-900" />;
+    return <div className="min-h-[72px] animate-pulse rounded-lg bg-zinc-900" />;
   }
 
   const percentage = totalGoal > 0 ? Math.min((totalVolume / totalGoal) * 100, 100) : 0;
@@ -27,7 +27,7 @@ export function TotalVolumeCard(): React.ReactElement {
   };
 
   return (
-    <div className="rounded-lg border-2 border-zinc-800 bg-zinc-950 px-4 py-3">
+    <div className="min-h-[72px] rounded-lg border-2 border-zinc-800 bg-zinc-950 px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
