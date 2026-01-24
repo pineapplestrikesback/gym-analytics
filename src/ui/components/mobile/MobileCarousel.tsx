@@ -68,7 +68,11 @@ export function MobileCarousel({
         <div className="flex touch-pan-y">
           {/* Slide 1: Body Heatmap (NAV-03: default view) */}
           <div className="flex-[0_0_100%] min-w-0 px-4">
-            <MobileHeatmap profileId={profileId} daysBack={daysBack} />
+            <MobileHeatmap
+              profileId={profileId}
+              daysBack={daysBack}
+              isActive={selectedIndex === 0}
+            />
           </div>
 
           {/* Slide 2: Muscle List */}

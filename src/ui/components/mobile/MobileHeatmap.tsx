@@ -21,6 +21,7 @@ import { MuscleDetailModal } from './MuscleDetailModal';
 interface MobileHeatmapProps {
   profileId: string | null;
   daysBack?: number;
+  isActive?: boolean;
 }
 
 /**
@@ -130,7 +131,11 @@ interface MuscleStats {
  * Mobile heatmap component.
  * Displays a single body view with 3D flip animation between front and back.
  */
-export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): React.ReactElement {
+export function MobileHeatmap({
+  profileId,
+  daysBack = 7,
+  isActive = true,
+}: MobileHeatmapProps): React.ReactElement {
   const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
   const { config } = useEffectiveMuscleGroupConfig(profileId);
   const [view, setView] = useSessionState<'front' | 'back'>(
@@ -147,6 +152,13 @@ export function MobileHeatmap({ profileId, daysBack = 7 }: MobileHeatmapProps): 
       return () => clearTimeout(timer);
     }
   }, [tappedRegion]);
+
+  // Close modal when carousel navigates away from heatmap
+  useEffect(() => {
+    if (!isActive) {
+      setSelectedRegion(null);
+    }
+  }, [isActive]);
 
   // Create set of hidden muscles for quick lookup
   const hiddenMuscles = useMemo(
