@@ -28,6 +28,7 @@ const CANONICAL_IDS = getCanonicalExerciseIds();
 const WORKOUTS_KEY = ['workouts'];
 const UNMAPPED_EXERCISES_KEY = ['unmappedExercises'];
 const PROFILES_KEY = ['profiles'];
+const DAILY_STATS_KEY = ['dailyStats'];
 
 /**
  * Result of a Hevy sync operation
@@ -187,6 +188,7 @@ export function useHevySync(): {
       void queryClient.invalidateQueries({ queryKey: WORKOUTS_KEY });
       void queryClient.invalidateQueries({ queryKey: PROFILES_KEY });
       void queryClient.invalidateQueries({ queryKey: UNMAPPED_EXERCISES_KEY });
+      void queryClient.invalidateQueries({ queryKey: DAILY_STATS_KEY });
     },
   });
 
@@ -219,6 +221,7 @@ export function useDeleteWorkouts(): {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: WORKOUTS_KEY });
+      void queryClient.invalidateQueries({ queryKey: DAILY_STATS_KEY });
     },
   });
 

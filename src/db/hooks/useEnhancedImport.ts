@@ -94,6 +94,7 @@ export function useEnhancedImport(): {
       // Invalidate all relevant queries
       void queryClient.invalidateQueries({ queryKey: ['workouts'] });
       void queryClient.invalidateQueries({ queryKey: ['unmappedExercises'] });
+      void queryClient.invalidateQueries({ queryKey: ['dailyStats'] });
 
       return {
         imported,
