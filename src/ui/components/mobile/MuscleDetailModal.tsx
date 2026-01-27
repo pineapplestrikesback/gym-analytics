@@ -15,7 +15,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useScientificMuscleVolume, type VolumeStatItem } from '@db/hooks/useVolumeStats';
+import { useScientificMuscleVolume, type VolumeStatItem, type ViewMode } from '@db/hooks/useVolumeStats';
 import { getVolumeColor } from '@core/color-scale';
 import type { ScientificMuscle } from '@core/taxonomy';
 import type { BodyRegion } from './MobileHeatmap';
@@ -32,6 +32,7 @@ interface MuscleDetailModalProps {
   // Common
   profileId: string | null;
   daysBack?: number;
+  viewMode?: ViewMode;
 }
 
 interface MuscleData {
@@ -107,11 +108,14 @@ export function MuscleDetailModal({
   muscle,
   profileId,
   daysBack = 7,
+  viewMode,
 }: MuscleDetailModalProps): React.ReactElement | null {
   // Determine mode: single muscle vs region
   const isSingleMuscleMode = muscle !== undefined && muscle !== null;
   // Fetch volume data for all muscles
-  const { stats } = useScientificMuscleVolume(profileId, daysBack);
+  // Use viewMode if provided, otherwise fall back to daysBack
+  const volumeArg = viewMode ?? daysBack;
+  const { stats } = useScientificMuscleVolume(profileId, volumeArg);
 
   // Create stats map for O(1) muscle lookup
   const statsMap = useMemo(() => {

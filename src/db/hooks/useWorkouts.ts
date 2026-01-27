@@ -7,6 +7,8 @@ import { db, generateId, type Workout, type WorkoutSet } from '../schema';
 
 const WORKOUTS_KEY = ['workouts'];
 
+export type ViewMode = 'last7days' | 'calendarWeek';
+
 /**
  * Get the start of today in the user's local timezone
  */
@@ -16,24 +18,75 @@ function getStartOfToday(): Date {
 }
 
 /**
+ * Get the end of today in the user's local timezone (23:59:59.999)
+ */
+function getEndOfToday(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+}
+
+/**
+ * Get the start of the current calendar week (Monday)
+ */
+function getStartOfWeek(): Date {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Adjust when Sunday (0)
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diff);
+  return new Date(monday.getFullYear(), monday.getMonth(), monday.getDate());
+}
+
+export interface UseWorkoutsOptions {
+  mode?: ViewMode;
+}
+
+/**
  * Get workouts for a profile within a date range
+ * @param profileId - Profile ID
+ * @param daysBackOrOptions - Number of days back (legacy) or options object with mode
  */
 export function useWorkouts(
   profileId: string | null,
-  daysBack: number = 7
+  daysBackOrOptions: number | UseWorkoutsOptions = 7
 ): {
   workouts: Workout[];
   isLoading: boolean;
   error: Error | null;
 } {
+  // Support both legacy daysBack number and new options object
+  const options: UseWorkoutsOptions = typeof daysBackOrOptions === 'number'
+    ? { mode: 'last7days' }
+    : daysBackOrOptions;
+  const mode = options.mode ?? 'last7days';
+
+  // For legacy daysBack support, extract the number
+  const daysBack = typeof daysBackOrOptions === 'number' ? daysBackOrOptions : 7;
+
   const { data, isLoading, error } = useQuery({
-    queryKey: [...WORKOUTS_KEY, profileId, daysBack],
+    queryKey: [...WORKOUTS_KEY, profileId, mode, daysBack],
     queryFn: async () => {
       if (!profileId) return [];
 
-      const endDate = new Date();
-      const startDate = new Date(getStartOfToday());
-      startDate.setDate(startDate.getDate() - daysBack + 1);
+      let startDate: Date;
+      let endDate: Date;
+
+      if (typeof daysBackOrOptions === 'number') {
+        // Legacy behavior: rolling daysBack window
+        endDate = new Date();
+        startDate = new Date(getStartOfToday());
+        startDate.setDate(startDate.getDate() - daysBackOrOptions + 1);
+      } else if (mode === 'last7days') {
+        endDate = getEndOfToday();
+        startDate = new Date(getStartOfToday());
+        startDate.setDate(startDate.getDate() - 6); // 6 days back + today = 7 days
+      } else {
+        // calendarWeek mode
+        startDate = getStartOfWeek();
+        endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 6); // Monday + 6 days = Sunday
+        endDate.setHours(23, 59, 59, 999);
+      }
 
       return db.workouts
         .where('profileId')

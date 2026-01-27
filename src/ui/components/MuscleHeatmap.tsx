@@ -5,7 +5,7 @@
  */
 
 import React, { useMemo, useId } from 'react';
-import { useScientificMuscleVolume } from '@db/hooks/useVolumeStats';
+import { useScientificMuscleVolume, type ViewMode } from '@db/hooks/useVolumeStats';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { getVolumeColor, getNoTargetColor } from '@core/color-scale';
 import Model from 'react-body-highlighter';
@@ -14,6 +14,7 @@ import type { IExerciseData, Muscle } from 'react-body-highlighter';
 interface MuscleHeatmapProps {
   profileId: string | null;
   daysBack?: number;
+  viewMode?: ViewMode;
 }
 
 /**
@@ -138,8 +139,10 @@ function getFrequencyLevel(percentage: number): number {
  * @param daysBack - Number of days to aggregate stats over (default: 7)
  * @returns A React element containing the split anterior/posterior muscle heatmap
  */
-export function MuscleHeatmap({ profileId, daysBack = 7 }: MuscleHeatmapProps): React.ReactElement {
-  const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+export function MuscleHeatmap({ profileId, daysBack = 7, viewMode }: MuscleHeatmapProps): React.ReactElement {
+  // Use viewMode if provided, otherwise fall back to daysBack
+  const volumeArg = viewMode ?? daysBack;
+  const { stats, isLoading, error } = useScientificMuscleVolume(profileId, volumeArg);
 
   // Map stats to muscle-level data
   const muscleStats = useMemo((): MuscleStats[] => {

@@ -8,11 +8,13 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 
 import { useDailyStats, type DailyActivity } from '../../db/hooks/useDailyStats';
 import { useCurrentProfile } from '../context/ProfileContext';
 
+type ViewMode = 'last7days' | 'calendarWeek';
+
 interface WeeklyActivityChartProps {
   profileId?: string;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
-
-type ViewMode = 'last7days' | 'calendarWeek';
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -153,11 +155,23 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps): React.ReactEleme
  */
 export function WeeklyActivityChart({
   profileId: propProfileId,
+  viewMode: controlledViewMode,
+  onViewModeChange,
 }: WeeklyActivityChartProps): React.ReactElement {
   const { currentProfile } = useCurrentProfile();
   const profileId = propProfileId ?? currentProfile?.id ?? null;
 
-  const [viewMode, setViewMode] = useState<ViewMode>('last7days');
+  // Support both controlled and uncontrolled modes
+  const [internalViewMode, setInternalViewMode] = useState<ViewMode>('last7days');
+  const viewMode = controlledViewMode ?? internalViewMode;
+  const setViewMode = (mode: ViewMode): void => {
+    if (onViewModeChange) {
+      onViewModeChange(mode);
+    } else {
+      setInternalViewMode(mode);
+    }
+  };
+
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
   const { days, isLoading, error } = useDailyStats(profileId, { mode: viewMode });

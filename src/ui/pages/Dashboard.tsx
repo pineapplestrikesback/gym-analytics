@@ -13,11 +13,14 @@ import { MobileCarousel } from '@ui/components/mobile/MobileCarousel';
 import { TotalVolumeCard } from '../components/TotalVolumeCard';
 import { WeeklyActivityChart } from '../components/WeeklyActivityChart';
 
+type ViewMode = 'last7days' | 'calendarWeek';
+
 export function Dashboard(): React.ReactElement {
   const { currentProfile, isLoading } = useCurrentProfile();
   const { count: unmappedCount } = useUnmappedExercises(currentProfile?.id ?? null);
   const isMobile = useIsMobileDevice();
   const [dismissedAlert, setDismissedAlert] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('last7days');
 
   if (isLoading) {
     return (
@@ -78,22 +81,24 @@ export function Dashboard(): React.ReactElement {
       </div>
 
       {/* Total Weekly Volume */}
-      <TotalVolumeCard />
+      <TotalVolumeCard viewMode={viewMode} />
 
       {/* Weekly Activity Chart */}
-      <WeeklyActivityChart />
+      <WeeklyActivityChart viewMode={viewMode} onViewModeChange={setViewMode} />
 
-      {/* This Week Section */}
+      {/* Volume Display Section */}
       <div className="rounded-lg bg-primary-700 p-6">
         {isMobile ? (
-          <MobileCarousel profileId={currentProfile.id} />
+          <MobileCarousel profileId={currentProfile.id} viewMode={viewMode} />
         ) : (
           <>
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-white">This Week</h3>
+              <h3 className="text-lg font-semibold text-white">
+                {viewMode === 'calendarWeek' ? 'This Week' : 'Last 7 Days'}
+              </h3>
             </div>
 
-            <MuscleHeatmap profileId={currentProfile.id} />
+            <MuscleHeatmap profileId={currentProfile.id} viewMode={viewMode} />
           </>
         )}
       </div>
