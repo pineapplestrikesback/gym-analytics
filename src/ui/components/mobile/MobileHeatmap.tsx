@@ -11,7 +11,7 @@
 import { useMemo, useId, useState, useCallback, useEffect } from 'react';
 import Model from 'react-body-highlighter';
 import type { IExerciseData, Muscle } from 'react-body-highlighter';
-import { useScientificMuscleVolume } from '@db/hooks';
+import { useScientificMuscleVolume, type ViewMode } from '@db/hooks';
 import { useEffectiveMuscleGroupConfig } from '@db/hooks/useMuscleGroups';
 import type { ScientificMuscle } from '@core/taxonomy';
 import { getVolumeColor, getNoTargetColor } from '@core/color-scale';
@@ -21,6 +21,7 @@ import { MuscleDetailModal } from './MuscleDetailModal';
 interface MobileHeatmapProps {
   profileId: string | null;
   daysBack?: number;
+  viewMode?: ViewMode;
   isActive?: boolean;
 }
 
@@ -134,9 +135,12 @@ interface MuscleStats {
 export function MobileHeatmap({
   profileId,
   daysBack = 7,
+  viewMode,
   isActive = true,
 }: MobileHeatmapProps): React.ReactElement {
-  const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+  // Use viewMode if provided, otherwise fall back to daysBack
+  const volumeArg = viewMode ?? daysBack;
+  const { stats, isLoading, error } = useScientificMuscleVolume(profileId, volumeArg);
   const { config } = useEffectiveMuscleGroupConfig(profileId);
   const [view, setView] = useSessionState<'front' | 'back'>(
     'scientificmuscle_heatmap_view',
@@ -341,6 +345,7 @@ export function MobileHeatmap({
         relatedMuscles={selectedRegion ? REGION_TO_MUSCLES[selectedRegion].related : undefined}
         profileId={profileId}
         daysBack={daysBack}
+        viewMode={viewMode}
       />
     </div>
   );

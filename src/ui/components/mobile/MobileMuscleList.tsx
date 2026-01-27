@@ -15,7 +15,7 @@
  */
 
 import { useState, useMemo, useEffect } from 'react';
-import { useScientificMuscleVolume, type VolumeStatItem } from '@db/hooks/useVolumeStats';
+import { useScientificMuscleVolume, type VolumeStatItem, type ViewMode } from '@db/hooks/useVolumeStats';
 import { useEffectiveMuscleGroupConfig } from '@db/hooks/useMuscleGroups';
 import { getVolumeColor } from '@core/color-scale';
 import type { ScientificMuscle } from '@core/taxonomy';
@@ -23,6 +23,7 @@ import type { ScientificMuscle } from '@core/taxonomy';
 interface MobileMuscleListProps {
   profileId: string | null;
   daysBack?: number;
+  viewMode?: ViewMode;
 }
 
 /**
@@ -40,9 +41,12 @@ function formatVolume(volume: number): string {
 export function MobileMuscleList({
   profileId,
   daysBack = 7,
+  viewMode,
 }: MobileMuscleListProps): React.ReactElement {
   // Fetch volume data for all muscles
-  const { stats, isLoading: volumeLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+  // Use viewMode if provided, otherwise fall back to daysBack
+  const volumeArg = viewMode ?? daysBack;
+  const { stats, isLoading: volumeLoading, error } = useScientificMuscleVolume(profileId, volumeArg);
 
   // Fetch custom group configuration
   const { config, isLoading: configLoading } = useEffectiveMuscleGroupConfig(profileId);

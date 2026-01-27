@@ -3,7 +3,7 @@
  */
 
 import { useMemo } from 'react';
-import { useWorkouts } from './useWorkouts';
+import { useWorkouts, type ViewMode } from './useWorkouts';
 import { useProfile } from './useProfiles';
 import { useExerciseMappings } from './useExerciseMappings';
 import { calculateMuscleVolume, aggregateToFunctionalGroups } from '@core/volume-calculator';
@@ -110,19 +110,27 @@ function convertSets(dbSets: WorkoutSet[]): WorkoutSet[] {
   return dbSets;
 }
 
+export type { ViewMode };
+
 /**
  * Get volume statistics at the ScientificMuscle level
+ * @param profileId - Profile ID
+ * @param daysBackOrMode - Number of days back (legacy) or ViewMode ('last7days' | 'calendarWeek')
  */
 export function useScientificMuscleVolume(
   profileId: string | null,
-  daysBack: number = 7
+  daysBackOrMode: number | ViewMode = 7
 ): {
   stats: VolumeStatItem[];
   totalVolume: number;
   isLoading: boolean;
   error: Error | null;
 } {
-  const { workouts, isLoading: workoutsLoading, error } = useWorkouts(profileId, daysBack);
+  // Convert to options format for useWorkouts
+  const workoutsArg = typeof daysBackOrMode === 'number'
+    ? daysBackOrMode
+    : { mode: daysBackOrMode };
+  const { workouts, isLoading: workoutsLoading, error } = useWorkouts(profileId, workoutsArg);
   const { profile } = useProfile(profileId);
   const { mappings: userMappings, isLoading: mappingsLoading } = useExerciseMappings(profileId);
 
@@ -161,10 +169,12 @@ export function useScientificMuscleVolume(
 
 /**
  * Get volume statistics at the FunctionalGroup level
+ * @param profileId - Profile ID
+ * @param daysBackOrMode - Number of days back (legacy) or ViewMode ('last7days' | 'calendarWeek')
  */
 export function useFunctionalGroupVolume(
   profileId: string | null,
-  daysBack: number = 7
+  daysBackOrMode: number | ViewMode = 7
 ): {
   stats: VolumeStatItem[];
   totalVolume: number;
@@ -172,7 +182,11 @@ export function useFunctionalGroupVolume(
   isLoading: boolean;
   error: Error | null;
 } {
-  const { workouts, isLoading: workoutsLoading, error } = useWorkouts(profileId, daysBack);
+  // Convert to options format for useWorkouts
+  const workoutsArg = typeof daysBackOrMode === 'number'
+    ? daysBackOrMode
+    : { mode: daysBackOrMode };
+  const { workouts, isLoading: workoutsLoading, error } = useWorkouts(profileId, workoutsArg);
   const { profile } = useProfile(profileId);
   const { mappings: userMappings, isLoading: mappingsLoading } = useExerciseMappings(profileId);
 
@@ -232,17 +246,20 @@ export function useFunctionalGroupVolume(
 
 /**
  * Get the breakdown of scientific muscles within a functional group
+ * @param profileId - Profile ID
+ * @param functionalGroup - Functional group to get breakdown for
+ * @param daysBackOrMode - Number of days back (legacy) or ViewMode ('last7days' | 'calendarWeek')
  */
 export function useFunctionalGroupBreakdown(
   profileId: string | null,
   functionalGroup: FunctionalGroup,
-  daysBack: number = 7
+  daysBackOrMode: number | ViewMode = 7
 ): {
   breakdown: VolumeStatItem[];
   isLoading: boolean;
   error: Error | null;
 } {
-  const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBack);
+  const { stats, isLoading, error } = useScientificMuscleVolume(profileId, daysBackOrMode);
   const { profile } = useProfile(profileId);
 
   const breakdown = useMemo(() => {

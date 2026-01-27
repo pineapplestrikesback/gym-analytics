@@ -12,10 +12,12 @@ import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { MobileHeatmap } from '@ui/components/mobile/MobileHeatmap';
 import { MobileMuscleList } from '@ui/components/mobile/MobileMuscleList';
+import type { ViewMode } from '@db/hooks/useWorkouts';
 
 interface MobileCarouselProps {
   profileId: string | null;
   daysBack?: number;
+  viewMode?: ViewMode;
 }
 
 /**
@@ -26,7 +28,8 @@ interface MobileCarouselProps {
  */
 export function MobileCarousel({
   profileId,
-  daysBack = 7
+  daysBack = 7,
+  viewMode,
 }: MobileCarouselProps): React.ReactElement {
   // Initialize Embla with critical options
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -71,13 +74,14 @@ export function MobileCarousel({
             <MobileHeatmap
               profileId={profileId}
               daysBack={daysBack}
+              viewMode={viewMode}
               isActive={selectedIndex === 0}
             />
           </div>
 
           {/* Slide 2: Muscle List */}
           <div className="flex-[0_0_100%] min-w-0 px-4">
-            <MobileMuscleList profileId={profileId} daysBack={daysBack} />
+            <MobileMuscleList profileId={profileId} daysBack={daysBack} viewMode={viewMode} />
           </div>
         </div>
       </div>

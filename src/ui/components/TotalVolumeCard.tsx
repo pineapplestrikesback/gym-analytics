@@ -3,13 +3,18 @@
  * Shows total weekly volume with progress bar
  */
 
-import { useFunctionalGroupVolume } from '@db/hooks/useVolumeStats';
+import { useFunctionalGroupVolume, type ViewMode } from '@db/hooks/useVolumeStats';
 import { useCurrentProfile } from '../context/ProfileContext';
 
-export function TotalVolumeCard(): React.ReactElement {
+interface TotalVolumeCardProps {
+  viewMode?: ViewMode;
+}
+
+export function TotalVolumeCard({ viewMode = 'last7days' }: TotalVolumeCardProps): React.ReactElement {
   const { currentProfile } = useCurrentProfile();
   const { totalVolume, totalGoal, isLoading } = useFunctionalGroupVolume(
-    currentProfile?.id ?? null
+    currentProfile?.id ?? null,
+    viewMode
   );
 
   if (isLoading) {
